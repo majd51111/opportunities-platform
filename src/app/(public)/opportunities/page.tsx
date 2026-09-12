@@ -172,14 +172,24 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
             return (
               <article
                 key={opportunity.id}
-                className={`flex h-full flex-col rounded-2xl border p-6 shadow-sm ${[
-                  "border-orange-100 bg-[linear-gradient(145deg,#fffdf9_0%,#fff5e8_100%)]",
-                  "border-emerald-100 bg-[linear-gradient(145deg,#fbfffd_0%,#e9fbf3_100%)]",
-                  "border-violet-100 bg-[linear-gradient(145deg,#fefcff_0%,#f2edff_100%)]",
-                  "border-sky-100 bg-[linear-gradient(145deg,#fcfeff_0%,#eaf5ff_100%)]",
-                  "border-pink-100 bg-[linear-gradient(145deg,#fffafd_0%,#fff0f8_100%)]",
+                className={`relative isolate flex h-full flex-col overflow-hidden rounded-2xl border p-6 shadow-[0_12px_28px_rgba(76,112,160,0.12)] transition-transform duration-200 hover:-translate-y-1 [&>*:not(.pointer-events-none)]:relative [&>*:not(.pointer-events-none)]:z-10 ${[
+                  "border-[#f5d7ae]",
+                  "border-[#b9e8d5]",
+                  "border-[#d8c8fa]",
+                  "border-[#bddafa]",
+                  "border-[#f2c4df]",
                 ][index % 5]}`}
+                style={{
+                  backgroundImage: [
+                    "radial-gradient(ellipse at 100% 0%, rgba(255,255,255,.96) 0 18%, transparent 52%), radial-gradient(ellipse at 0% 100%, rgba(255,222,177,.78) 0 16%, transparent 48%), linear-gradient(135deg, #fffdfa 0%, #fff7ed 48%, #fce8c8 100%)",
+                    "radial-gradient(ellipse at 100% 0%, rgba(255,255,255,.98) 0 18%, transparent 52%), radial-gradient(ellipse at 0% 100%, rgba(173,235,208,.72) 0 16%, transparent 48%), linear-gradient(135deg, #fcfffd 0%, #effcf6 48%, #d9f5e8 100%)",
+                    "radial-gradient(ellipse at 100% 0%, rgba(255,255,255,.98) 0 18%, transparent 52%), radial-gradient(ellipse at 0% 100%, rgba(205,187,255,.7) 0 16%, transparent 48%), linear-gradient(135deg, #fffefe 0%, #f8f3ff 48%, #e8ddff 100%)",
+                    "radial-gradient(ellipse at 100% 0%, rgba(255,255,255,.98) 0 18%, transparent 52%), radial-gradient(ellipse at 0% 100%, rgba(161,205,255,.7) 0 16%, transparent 48%), linear-gradient(135deg, #fdffff 0%, #f1f8ff 48%, #dceeff 100%)",
+                    "radial-gradient(ellipse at 100% 0%, rgba(255,255,255,.98) 0 18%, transparent 52%), radial-gradient(ellipse at 0% 100%, rgba(246,181,220,.68) 0 16%, transparent 48%), linear-gradient(135deg, #fffdfd 0%, #fff3fa 48%, #f9dced 100%)",
+                  ][index % 5],
+                }}
               >
+                <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -left-10 h-44 w-72 rounded-[50%] border-[24px] border-white/30" />
                 {opportunity.image_url && (
                   <img
                     src={opportunity.image_url}
