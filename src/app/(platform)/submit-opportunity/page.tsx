@@ -69,7 +69,11 @@ function SuggestionInput({ value, options, placeholder, listLabel, onChange }: S
 
   function chooseOption(option: string) {
     const values = value.split(",").map((item) => item.trim()).filter(Boolean);
-    values[values.length - 1] = option;
+    if (values.length === 0) {
+      values.push(option);
+    } else {
+      values[values.length - 1] = option;
+    }
     onChange(values.join(", "));
     setOpen(false);
   }
