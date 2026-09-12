@@ -34,6 +34,7 @@ const ja = {
       profileInformation: "プロフィール情報",
       editProfile: "プロフィールを編集",
       saveProfile: "プロフィールを保存",
+      saveChanges: "変更を保存",
       cancel: "キャンセル",
       fullName: "氏名",
       email: "メールアドレス",

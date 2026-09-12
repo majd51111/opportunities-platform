@@ -34,6 +34,7 @@ const zh = {
       profileInformation: "个人资料信息",
       editProfile: "编辑个人资料",
       saveProfile: "保存个人资料",
+      saveChanges: "保存更改",
       cancel: "取消",
       fullName: "姓名",
       email: "电子邮箱",

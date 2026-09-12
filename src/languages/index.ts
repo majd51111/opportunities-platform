@@ -75,6 +75,7 @@ export type LanguageDictionary = {
     profileInformation: string;
     editProfile: string;
     saveProfile: string;
+    saveChanges: string;
     cancel: string;
     fullName: string;
     email: string;

@@ -34,6 +34,7 @@ const de = {
       profileInformation: "Profilinformationen",
       editProfile: "Profil bearbeiten",
       saveProfile: "Profil speichern",
+      saveChanges: "Änderungen speichern",
       cancel: "Abbrechen",
       fullName: "Vollständiger Name",
       email: "E-Mail",

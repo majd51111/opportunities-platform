@@ -34,6 +34,7 @@ const pt = {
       profileInformation: "Informações do perfil",
       editProfile: "Editar perfil",
       saveProfile: "Salvar perfil",
+      saveChanges: "Salvar alterações",
       cancel: "Cancelar",
       fullName: "Nome completo",
       email: "E-mail",

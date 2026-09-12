@@ -70,6 +70,7 @@ const en = {
       profileInformation: "Profile information",
       editProfile: "Edit profile",
       saveProfile: "Save profile",
+      saveChanges: "Save changes",
       cancel: "Cancel",
       fullName: "Full name",
       email: "Email",

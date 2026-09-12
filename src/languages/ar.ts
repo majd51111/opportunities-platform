@@ -34,6 +34,7 @@ const ar = {
       profileInformation: "معلومات الملف الشخصي",
       editProfile: "تعديل الملف الشخصي",
       saveProfile: "حفظ الملف الشخصي",
+      saveChanges: "حفظ التغييرات",
       cancel: "إلغاء",
       fullName: "الاسم الكامل",
       email: "البريد الإلكتروني",

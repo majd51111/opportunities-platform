@@ -34,6 +34,7 @@ const es = {
       profileInformation: "Información del perfil",
       editProfile: "Editar perfil",
       saveProfile: "Guardar perfil",
+      saveChanges: "Guardar cambios",
       cancel: "Cancelar",
       fullName: "Nombre completo",
       email: "Correo electrónico",
