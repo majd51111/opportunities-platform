@@ -11,6 +11,7 @@ const es = {
       overview: "Resumen",
       users: "Usuarios",
       backToHome: "Volver al inicio",
+      deleteOpportunity: "Eliminar oportunidad",
     },
   
     home: {

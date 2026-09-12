@@ -11,6 +11,7 @@ const fr = {
       overview: "Vue d'ensemble",
       users: "Utilisateurs",
       backToHome: "Retour à l'accueil",
+      deleteOpportunity: "Supprimer l'opportunité",
     },
   
     home: {

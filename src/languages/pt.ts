@@ -11,6 +11,7 @@ const pt = {
       overview: "Visão geral",
       users: "Usuários",
       backToHome: "Voltar para o início",
+      deleteOpportunity: "Excluir oportunidade",
     },
   
     home: {

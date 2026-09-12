@@ -11,6 +11,7 @@ const zh = {
       overview: "概览",
       users: "用户",
       backToHome: "返回主页",
+      deleteOpportunity: "删除机会",
     },
   
     home: {

@@ -11,6 +11,7 @@ const ar = {
       overview: "نظرة عامة",
       users: "المستخدمون",
       backToHome: "العودة إلى الرئيسية",
+      deleteOpportunity: "حذف الفرصة",
     },
   
     home: {

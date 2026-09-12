@@ -16,12 +16,20 @@ export default function OpportunitiesPage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [canDelete, setCanDelete] = useState(false);
 
   useEffect(() => {
     async function loadOpportunities() {
       setLoading(true);
       setError("");
       const supabase = getSupabaseBrowserClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+        setCanDelete(role?.role === "admin");
+      } else {
+        setCanDelete(false);
+      }
 
       const { data, error } = await supabase
         .from("opportunities")
@@ -111,6 +119,16 @@ setOpportunities(localizedOpportunities);
     if (user) return true;
     router.push("/login");
     return false;
+  }
+
+  async function deleteOpportunity(opportunityId: string | number) {
+    if (!window.confirm(t.common.deleteOpportunity)) return;
+    const { error: deleteError } = await getSupabaseBrowserClient().rpc("delete_opportunity_as_admin", { p_opportunity_id: String(opportunityId) });
+    if (deleteError) {
+      setError(deleteError.message);
+      return;
+    }
+    setOpportunities((current) => current.filter((item) => item.id !== opportunityId));
   }
   if (loading) {
     return (
@@ -248,6 +266,16 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                   <p className="mt-2 text-sm text-zinc-500">
                     {t.opportunitiesPage.verification}: {localizedVerification}
                   </p>
+                )}
+
+                {canDelete && (
+                  <button
+                    type="button"
+                    onClick={() => void deleteOpportunity(opportunity.id)}
+                    className="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                  >
+                    {t.common.deleteOpportunity}
+                  </button>
                 )}
               </article>
             );

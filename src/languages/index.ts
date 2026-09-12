@@ -20,6 +20,7 @@ export type LanguageDictionary = {
     overview: string;
     users: string;
     backToHome: string;
+    deleteOpportunity: string;
   };
   home: {
     label: string;

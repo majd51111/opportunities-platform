@@ -11,6 +11,7 @@ const en = {
       overview: "Overview",
       users: "Users",
       backToHome: "Back to home",
+      deleteOpportunity: "Delete opportunity",
     },
   
     home: {

@@ -11,6 +11,7 @@ const ja = {
       overview: "概要",
       users: "ユーザー",
       backToHome: "ホームに戻る",
+      deleteOpportunity: "機会を削除",
     },
   
     home: {

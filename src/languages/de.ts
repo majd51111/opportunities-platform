@@ -11,6 +11,7 @@ const de = {
       overview: "Übersicht",
       users: "Benutzer",
       backToHome: "Zurück zur Startseite",
+      deleteOpportunity: "Chance löschen",
     },
   
     home: {
