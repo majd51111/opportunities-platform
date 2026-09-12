@@ -1,3 +1,4 @@
+import LanguageSync from "@/components/ui/LanguageSync";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
@@ -32,7 +33,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AppProviders>{children}</AppProviders>
+      <AppProviders>
+  <LanguageSync />
+  {children}
+</AppProviders>
       </body>
     </html>
   );

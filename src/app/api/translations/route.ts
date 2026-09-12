@@ -1,0 +1,138 @@
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
+
+const supportedLanguages = ["ar", "en", "es", "fr", "de", "pt", "ja", "zh"] as const;
+type SupportedLanguage = (typeof supportedLanguages)[number];
+
+type TranslationInput = {
+  title: string;
+  shortDescription: string;
+  description: string;
+  earningsText: string | null;
+};
+
+type TranslationOutput = Record<SupportedLanguage, TranslationInput>;
+
+function isTranslationOutput(value: unknown): value is TranslationOutput {
+  if (!value || typeof value !== "object") return false;
+  return supportedLanguages.every((language) => {
+    const item = (value as Record<string, unknown>)[language];
+    if (!item || typeof item !== "object") return false;
+    const record = item as Record<string, unknown>;
+    return typeof record.title === "string"
+      && typeof record.shortDescription === "string"
+      && typeof record.description === "string"
+      && (record.earningsText === null || typeof record.earningsText === "string");
+  });
+}
+
+export async function POST(request: Request) {
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll() {
+          // The translation endpoint only needs to validate the current session.
+        },
+      },
+    },
+  );
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Authentication is required." }, { status: 401 });
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json({ error: "GEMINI_API_KEY is not configured." }, { status: 503 });
+  }
+
+  let input: TranslationInput;
+  try {
+    input = (await request.json()) as TranslationInput;
+  } catch {
+    return NextResponse.json({ error: "Invalid translation request." }, { status: 400 });
+  }
+
+  if (!input.title?.trim() || !input.shortDescription?.trim() || !input.description?.trim()) {
+    return NextResponse.json({ error: "Translation content is incomplete." }, { status: 400 });
+  }
+
+  const languageNames: Record<SupportedLanguage, string> = {
+    ar: "Arabic",
+    en: "English",
+    es: "Spanish",
+    fr: "French",
+    de: "German",
+    pt: "Portuguese",
+    ja: "Japanese",
+    zh: "Simplified Chinese",
+  };
+
+  const model = process.env.GEMINI_TRANSLATION_MODEL ?? "gemini-3.6-flash";
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+    {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      generationConfig: {
+        temperature: 0.2,
+        responseMimeType: "application/json",
+      },
+      contents: [
+        {
+          parts: [{
+            text: [
+              "Translate opportunity listing content naturally and accurately.",
+              "Return only valid JSON with language keys and fields title, shortDescription, description, earningsText.",
+              "Preserve URLs, numbers, product names, and meaning. Use null for a missing earningsText.",
+              JSON.stringify({
+            targetLanguages: Object.fromEntries(supportedLanguages.map((language) => [language, languageNames[language]])),
+            source: input,
+              }),
+            ].join("\n"),
+          }],
+        },
+      ],
+    }),
+    },
+  );
+
+  if (!response.ok) {
+    const providerPayload = await response.json().catch(() => null) as {
+      error?: { message?: string; status?: string };
+    } | null;
+    const providerMessage = providerPayload?.error?.message ?? "Translation provider request failed.";
+    const providerCode = providerPayload?.error?.status ? ` (${providerPayload.error.status})` : "";
+    console.error("Gemini translation request failed", response.status, providerMessage);
+    return NextResponse.json(
+      { error: `Gemini رفض طلب الترجمة: ${providerMessage}${providerCode}` },
+      { status: 502 },
+    );
+  }
+
+  const payload = await response.json() as {
+    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  };
+  const content = payload.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("").trim();
+  if (!content) {
+    return NextResponse.json({ error: "Translation provider returned no content." }, { status: 502 });
+  }
+
+  try {
+    const translations: unknown = JSON.parse(content);
+    if (!isTranslationOutput(translations)) throw new Error("Invalid translation shape");
+    return NextResponse.json({ translations });
+  } catch {
+    return NextResponse.json({ error: "Translation provider returned invalid JSON." }, { status: 502 });
+  }
+}

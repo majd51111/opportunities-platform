@@ -7,12 +7,14 @@ type PlaceholderPageProps = {
   title: string;
   description: string;
   compact?: boolean;
+  backLabel?: string;
 };
 
 export function PlaceholderPage({
   title,
   description,
   compact = false,
+  backLabel,
 }: PlaceholderPageProps) {
   return (
     <section className={cn(compact ? "space-y-3" : "space-y-4")}>
@@ -20,12 +22,12 @@ export function PlaceholderPage({
         {title}
       </h1>
       <p className="text-zinc-600 dark:text-zinc-400">{description}</p>
-      {!compact ? (
+      {!compact && backLabel ? (
         <Link
           href={routes.public.home}
           className="inline-flex text-sm font-medium text-zinc-900 underline-offset-4 hover:underline dark:text-zinc-100"
         >
-          Back to home
+          {backLabel}
         </Link>
       ) : null}
     </section>

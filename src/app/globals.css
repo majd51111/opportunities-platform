@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #edf9ff;
+  --foreground: #14183d;
+  --surface: rgba(255, 255, 255, 0.96);
+  --surface-muted: rgba(255, 255, 255, 0.72);
+  --border: #a9c8d9;
+  --border-subtle: #c2dce8;
+  --primary-start: #6c5cf5;
+  --primary-end: #4c3ecb;
+  --primary-text: #ffffff;
 }
 
 @theme inline {
@@ -12,15 +19,51 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
+  min-height: 100vh;
+  background: linear-gradient(135deg, #edf9ff 0%, #dff4ff 42%, #eefaff 72%, #d8f0fc 100%);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+header,
+footer {
+  background: var(--surface-muted);
+  border-color: rgba(184, 222, 239, 0.7) !important;
+}
+
+.bg-white,
+.bg-zinc-50 {
+  background-color: var(--surface) !important;
+}
+
+.border-zinc-100,
+.border-zinc-200,
+.border-zinc-300 {
+  border-color: var(--border-subtle) !important;
+}
+
+input,
+select,
+textarea {
+  border-color: var(--border) !important;
+  background-color: #ffffff;
+  color: #171a3d;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary-start) !important;
+  box-shadow: 0 0 0 3px rgba(109, 93, 252, 0.12);
+  outline: none;
+}
+
+.bg-black,
+.bg-blue-500,
+.bg-blue-600,
+.bg-indigo-500,
+.bg-indigo-600 {
+  background: linear-gradient(100deg, var(--primary-start), var(--primary-end)) !important;
+  color: var(--primary-text) !important;
 }

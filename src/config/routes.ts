@@ -3,6 +3,8 @@ export const routes = {
     home: "/",
     opportunities: "/opportunities",
     search: "/search",
+    support: "/support",
+    about: "/about",
   },
   auth: {
     login: "/login",
@@ -12,11 +14,15 @@ export const routes = {
     favorites: "/favorites",
     profile: "/profile",
     reports: "/reports",
+    submitOpportunity: "/submit-opportunity",
+    supportRequests: "/support/requests",
   },
   admin: {
     dashboard: "/admin",
     opportunities: "/admin/opportunities",
     users: "/admin/users",
+    support: "/admin/support",
+    supportRequests: "/admin/support-requests",
     reports: "/admin/reports",
   },
   api: {
