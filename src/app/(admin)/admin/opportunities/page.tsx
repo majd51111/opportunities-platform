@@ -85,25 +85,45 @@ export default function AdminOpportunitiesPage() {
   async function translateCurrentOpportunities() {
     if (submissions.length === 0) return;
     setTranslating(true); setMessage("");
-    try {
-      for (const submission of submissions) {
-        const response = await fetch("/api/translations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: submission.title, shortDescription: submission.short_description ?? "", description: submission.description ?? "", earningsText: submission.earnings_text || null }),
-        });
-        const payload = await response.json() as { translations?: Record<string, { title: string; shortDescription: string; description: string; earningsText: string | null }>; error?: string };
-        if (!response.ok || !payload.translations) throw new Error(payload.error ?? "Translation failed");
-        const rows = Object.entries(payload.translations).map(([languageCode, translation]) => ({ language_code: languageCode, title: translation.title, short_description: translation.shortDescription, description: translation.description, earnings_text: translation.earningsText }));
-        const { error } = await getSupabaseBrowserClient().rpc("save_opportunity_translations", { p_opportunity_id: Number(submission.id), p_translations: rows });
-        if (error) throw error;
+    let translatedCount = 0;
+    let failedCount = 0;
+    let lastError = "";
+    const wait = (milliseconds: number) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+    for (const submission of submissions) {
+      let completed = false;
+      for (let attempt = 0; attempt < 3 && !completed; attempt += 1) {
+        try {
+          const response = await fetch("/api/translations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: submission.title, shortDescription: submission.short_description ?? "", description: submission.description ?? "", earningsText: submission.earnings_text || null }),
+          });
+          const payload = await response.json() as { translations?: Record<string, { title: string; shortDescription: string; description: string; earningsText: string | null }>; error?: string };
+          if (!response.ok || !payload.translations) {
+            const providerError = payload.error ?? "Translation failed";
+            const retryMatch = providerError.match(/retry in ([\d.]+)s/i);
+            if (retryMatch && attempt < 2) {
+              await wait(Math.min(Math.ceil(Number(retryMatch[1]) * 1000) + 1000, 60000));
+              continue;
+            }
+            throw new Error(providerError);
+          }
+          const rows = Object.entries(payload.translations).map(([languageCode, translation]) => ({ language_code: languageCode, title: translation.title, short_description: translation.shortDescription, description: translation.description, earnings_text: translation.earningsText }));
+          const { error } = await getSupabaseBrowserClient().rpc("save_opportunity_translations", { p_opportunity_id: Number(submission.id), p_translations: rows });
+          if (error) throw error;
+          translatedCount += 1;
+          completed = true;
+        } catch (translationError) {
+          lastError = translationError instanceof Error ? translationError.message : "Translation failed";
+          if (attempt < 2) await wait(2000);
+        }
       }
-      setMessage(copy.translated);
-    } catch (translationError) {
-      setMessage(`${copy.error} ${translationError instanceof Error ? translationError.message : "Translation failed"}`);
-    } finally {
-      setTranslating(false);
+      if (!completed) failedCount += 1;
     }
+
+    setMessage(failedCount === 0 ? `${copy.translated} (${translatedCount})` : `${copy.translated}: ${translatedCount}; ${copy.error}: ${failedCount}. ${lastError}`);
+    setTranslating(false);
   }
 
   async function deletePublishedOpportunity(id: string | number) {
