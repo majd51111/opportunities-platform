@@ -50,7 +50,9 @@ export default function LoginPage() {
   async function handleOAuthLogin(provider: Extract<Provider, "google" | "apple">) {
     setMessage("");
     setLoading(true);
-    const { error } = await getSupabaseBrowserClient().auth.signInWithOAuth({ provider, options: { redirectTo: `${window.location.origin}/opportunities` } });
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    callbackUrl.searchParams.set("next", "/opportunities");
+    const { error } = await getSupabaseBrowserClient().auth.signInWithOAuth({ provider, options: { redirectTo: callbackUrl.toString() } });
     if (error) { setLoading(false); setMessage(error.message); }
   }
 
