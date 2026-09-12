@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Provider } from "@supabase/supabase-js";
 
@@ -18,6 +18,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const oauthError = new URLSearchParams(window.location.search).get("oauth_error");
+    if (oauthError) {
+      setMessage(isArabic ? "تعذر إكمال تسجيل الدخول عبر المزود. حاول مرة أخرى." : "The provider sign-in could not be completed. Please try again.");
+    }
+  }, [isArabic]);
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

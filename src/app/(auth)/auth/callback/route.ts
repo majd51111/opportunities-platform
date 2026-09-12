@@ -24,13 +24,18 @@ export async function GET(request: Request) {
     },
   );
 
-  if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) {
-      const loginUrl = new URL("/login", requestUrl.origin);
-      loginUrl.searchParams.set("oauth_error", "true");
-      return NextResponse.redirect(loginUrl);
-    }
+  if (!code) {
+    const loginUrl = new URL("/login", requestUrl.origin);
+    loginUrl.searchParams.set("oauth_error", "missing_code");
+    return NextResponse.redirect(loginUrl);
+  }
+
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (error) {
+    console.error("OAuth callback failed", error.message);
+    const loginUrl = new URL("/login", requestUrl.origin);
+    loginUrl.searchParams.set("oauth_error", "exchange_failed");
+    return NextResponse.redirect(loginUrl);
   }
 
   return response;

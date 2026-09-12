@@ -25,7 +25,14 @@ let browserClient: SupabaseClient | undefined;
 export function createSupabaseBrowserClient(): SupabaseClient {
   const { url, publishableKey } = getSupabaseConfig();
 
-  return createBrowserClient(url, publishableKey);
+  return createBrowserClient(url, publishableKey, {
+    auth: {
+      flowType: "pkce",
+      detectSessionInUrl: true,
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  });
 }
 
 export function getSupabaseBrowserClient(): SupabaseClient {
