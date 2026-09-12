@@ -19,6 +19,7 @@ type Submission = {
   devices?: string[] | null;
   payment_methods?: string[] | null;
   requirements?: string[] | null;
+  status: string;
 };
 
 function listToText(value: string[] | null | undefined): string {
@@ -47,7 +48,7 @@ export default function AdminOpportunitiesPage() {
     if (!user) { setMessage(copy.access); setLoading(false); return; }
     const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
     if (!role || !["admin", "support"].includes(role.role)) { setMessage(copy.access); setLoading(false); return; }
-    const { data, error } = await supabase.from("opportunities").select("id, title, slug, short_description, description, direct_url, earnings_text, countries, devices, payment_methods, requirements").eq("status", "pending").order("created_at", { ascending: true });
+    const { data, error } = await supabase.from("opportunities").select("id, title, slug, short_description, description, direct_url, earnings_text, countries, devices, payment_methods, requirements, status").in("status", ["pending", "published"]).order("created_at", { ascending: true });
     setLoading(false);
     if (error) { setMessage(`${copy.error} ${error.message}`); return; }
     if ((data ?? []).length === 0) {
@@ -78,6 +79,15 @@ export default function AdminOpportunitiesPage() {
     if (error) { setMessage(`${copy.error} ${error.message}`); return; }
     setSubmissions((current) => current.map((item) => item.id === id ? { ...item, title: editForm.title, short_description: editForm.short_description, description: editForm.description, direct_url: editForm.direct_url, earnings_text: editForm.earnings_text, countries: textToList(editForm.countries), devices: textToList(editForm.devices), payment_methods: textToList(editForm.payment_methods), requirements: textToList(editForm.requirements) } : item));
     setEditingId(null);
+  }
+
+  async function deletePublishedOpportunity(id: string | number) {
+    if (!window.confirm("Delete this published opportunity permanently?")) return;
+    setReviewingId(id); setMessage("");
+    const { error } = await getSupabaseBrowserClient().rpc("delete_opportunity_as_admin", { p_opportunity_id: String(id) });
+    setReviewingId(null);
+    if (error) { setMessage(`${copy.error} ${error.message}`); return; }
+    setSubmissions((current) => current.filter((item) => item.id !== id));
   }
 
   const editListFields = <><input value={editForm.countries} onChange={(event) => setEditForm({ ...editForm, countries: event.target.value })} placeholder="Countries" className="rounded-lg border border-zinc-300 px-3 py-2" /><input value={editForm.devices} onChange={(event) => setEditForm({ ...editForm, devices: event.target.value })} placeholder="Devices" className="rounded-lg border border-zinc-300 px-3 py-2" /><input value={editForm.payment_methods} onChange={(event) => setEditForm({ ...editForm, payment_methods: event.target.value })} placeholder="Payment methods" className="rounded-lg border border-zinc-300 px-3 py-2" /><textarea rows={3} value={editForm.requirements} onChange={(event) => setEditForm({ ...editForm, requirements: event.target.value })} placeholder="Requirements" className="rounded-lg border border-zinc-300 px-3 py-2" /></>;
