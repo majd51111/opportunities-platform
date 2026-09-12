@@ -58,6 +58,7 @@ const es = {
       deleteAccount: "Eliminar cuenta",
       deleteAccountConfirmation: "¿Seguro que deseas eliminar tu cuenta permanentemente? Esta acción no se puede deshacer.",
       deleteAccountError: "No se pudo eliminar la cuenta. Inténtalo de nuevo.",
+      deleteAccountSuccess: "Tu cuenta se eliminó correctamente.",
       accountType: "Tipo de cuenta",
       bankAccount: "Cuenta bancaria",
       paypal: "PayPal",

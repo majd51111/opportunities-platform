@@ -58,6 +58,7 @@ const pt = {
       deleteAccount: "Excluir conta",
       deleteAccountConfirmation: "Tem certeza de que deseja excluir sua conta permanentemente? Esta ação não pode ser desfeita.",
       deleteAccountError: "Não foi possível excluir a conta. Tente novamente.",
+      deleteAccountSuccess: "Sua conta foi excluída com sucesso.",
       accountType: "Tipo de conta",
       bankAccount: "Conta bancária",
       paypal: "PayPal",

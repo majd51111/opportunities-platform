@@ -58,6 +58,7 @@ const de = {
       deleteAccount: "Konto löschen",
       deleteAccountConfirmation: "Möchten Sie Ihr Konto wirklich dauerhaft löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
       deleteAccountError: "Das Konto konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+      deleteAccountSuccess: "Ihr Konto wurde erfolgreich gelöscht.",
       accountType: "Kontotyp",
       bankAccount: "Bankkonto",
       paypal: "PayPal",

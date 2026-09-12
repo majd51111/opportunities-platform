@@ -58,6 +58,7 @@ const fr = {
       deleteAccount: "Supprimer le compte",
       deleteAccountConfirmation: "Voulez-vous supprimer définitivement votre compte ? Cette action est irréversible.",
       deleteAccountError: "Impossible de supprimer le compte. Réessayez.",
+      deleteAccountSuccess: "Votre compte a été supprimé avec succès.",
       accountType: "Type de compte",
       bankAccount: "Compte bancaire",
       paypal: "PayPal",

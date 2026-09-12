@@ -99,6 +99,7 @@ export type LanguageDictionary = {
     deleteAccount: string;
     deleteAccountConfirmation: string;
     deleteAccountError: string;
+    deleteAccountSuccess: string;
     accountType: string;
     bankAccount: string;
     paypal: string;

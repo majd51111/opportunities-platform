@@ -75,7 +75,8 @@ export default function ProfilePage() {
     }
 
     await getSupabaseBrowserClient().auth.signOut();
-    window.location.assign("/");
+    window.alert(t.profilePage.deleteAccountSuccess);
+    window.location.assign("/login");
   }
 
   async function loadAccounts(userId: string) {
