@@ -53,7 +53,14 @@ type SuggestionInputProps = {
 function SuggestionInput({ value, options, placeholder, listLabel, onChange }: SuggestionInputProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const currentPart = value.split(",").pop()?.trim().toLowerCase() ?? "";
+  const displayValue = value
+    .split(",")
+    .map((item) => {
+      const option = options.find((candidate) => candidate.value === item.trim());
+      return option?.label ?? item.trim();
+    })
+    .join(", ");
+  const currentPart = displayValue.split(",").pop()?.trim().toLowerCase() ?? "";
   const filteredOptions = options.filter((option) =>
     `${option.label} ${option.value}`.toLowerCase().includes(currentPart),
   );
@@ -82,9 +89,16 @@ function SuggestionInput({ value, options, placeholder, listLabel, onChange }: S
     <div ref={containerRef} className="relative">
       <div className="flex h-11 overflow-hidden rounded-lg border border-zinc-300 bg-white transition focus-within:border-[#2563eb] focus-within:ring-2 focus-within:ring-blue-100">
         <input
-          value={value}
+          value={displayValue}
           onChange={(event) => {
-            onChange(event.target.value);
+            const normalizedValue = event.target.value
+              .split(",")
+              .map((item) => {
+                const option = options.find((candidate) => candidate.label.toLowerCase() === item.trim().toLowerCase());
+                return option?.value ?? item.trim();
+              })
+              .join(", ");
+            onChange(normalizedValue);
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
