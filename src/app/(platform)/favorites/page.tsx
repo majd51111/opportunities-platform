@@ -87,7 +87,8 @@ export default function FavoritesPage() {
         return;
       }
 
-      const formatted: FavoriteOpportunity[] = (data ?? []).flatMap(
+      const favoriteRows = (data ?? []) as unknown as FavoriteOpportunityRow[];
+      const formatted: FavoriteOpportunity[] = favoriteRows.flatMap(
         (favorite: FavoriteOpportunityRow) => {
           const opportunities = favorite.opportunities
             ? Array.isArray(favorite.opportunities)
