@@ -148,7 +148,7 @@ setOpportunities(localizedOpportunities);
         <p className="text-zinc-500">{t.opportunitiesPage.noPublished}</p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {opportunities.map((opportunity, index) => {
+          {opportunities.map((opportunity) => {
             const category = normalizeOpportunityCategory(opportunity.category, languageKey);
             const title = getLocalizedText(opportunity.title, languageKey, "en") ?? "Opportunity";
             const summary =
@@ -178,7 +178,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                   "border-[#d8c8fa]",
                   "border-[#bddafa]",
                   "border-[#f2c4df]",
-                ][index % 5]}`}
+                ][Math.abs(Number(opportunity.id) || String(opportunity.id).split("").reduce((total, character) => total + character.charCodeAt(0), 0)) % 5]}`}
                 style={{
                   backgroundImage: [
                     "radial-gradient(ellipse at 100% 0%, rgba(255,255,255,.96) 0 18%, transparent 52%), radial-gradient(ellipse at 0% 100%, rgba(255,222,177,.78) 0 16%, transparent 48%), linear-gradient(135deg, #fffdfa 0%, #fff7ed 48%, #fce8c8 100%)",
@@ -186,7 +186,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                     "radial-gradient(ellipse at 100% 0%, rgba(255,255,255,.98) 0 18%, transparent 52%), radial-gradient(ellipse at 0% 100%, rgba(205,187,255,.7) 0 16%, transparent 48%), linear-gradient(135deg, #fffefe 0%, #f8f3ff 48%, #e8ddff 100%)",
                     "radial-gradient(ellipse at 100% 0%, rgba(255,255,255,.98) 0 18%, transparent 52%), radial-gradient(ellipse at 0% 100%, rgba(161,205,255,.7) 0 16%, transparent 48%), linear-gradient(135deg, #fdffff 0%, #f1f8ff 48%, #dceeff 100%)",
                     "radial-gradient(ellipse at 100% 0%, rgba(255,255,255,.98) 0 18%, transparent 52%), radial-gradient(ellipse at 0% 100%, rgba(246,181,220,.68) 0 16%, transparent 48%), linear-gradient(135deg, #fffdfd 0%, #fff3fa 48%, #f9dced 100%)",
-                  ][index % 5],
+                  ][Math.abs(Number(opportunity.id) || String(opportunity.id).split("").reduce((total, character) => total + character.charCodeAt(0), 0)) % 5],
                 }}
               >
                 <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -left-10 h-44 w-72 rounded-[50%] border-[24px] border-white/30" />
