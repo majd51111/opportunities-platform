@@ -89,7 +89,7 @@ export default function OpportunityDetailsPage() {
       setOpportunity({
         ...data,
         title: localized?.title ?? data.title,
-        short_description: localized?.short_description ?? data.short_description,
+        short_description: localized?.short_description || localized?.description || data.short_description,
         description: localized?.description ?? data.description,
         earnings_text: localized?.earnings_text ?? data.earnings_text,
       });

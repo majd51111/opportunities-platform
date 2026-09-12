@@ -86,7 +86,7 @@ const localized =
     ...opportunity,
     title: localized?.title ?? opportunity.title,
 short_description:
-  localized?.short_description ?? opportunity.short_description,
+  localized?.short_description || localized?.description || opportunity.short_description,
 description: localized?.description ?? opportunity.description,
 earnings_text: localized?.earnings_text ?? opportunity.earnings_text,
   };
