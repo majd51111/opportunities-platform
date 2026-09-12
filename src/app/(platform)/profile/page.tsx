@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase";
@@ -63,6 +63,7 @@ export default function ProfilePage() {
   const [accountMessage, setAccountMessage] = useState("");
   const [notificationMessage, setNotificationMessage] = useState("");
   const [error, setError] = useState("");
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   async function deleteAccount() {
     if (!user || !window.confirm(t.profilePage.deleteAccountConfirmation)) return;
@@ -239,7 +240,17 @@ export default function ProfilePage() {
   `}</style><main dir={dir} className="mx-auto w-full max-w-5xl px-6 py-6">
     <div className="mb-8 flex flex-wrap items-center justify-between gap-4"><div><h1 className="text-3xl font-bold">{t.profilePage.title}</h1><p className="mt-2 text-zinc-500">{t.profilePage.profileInformation}</p></div></div>
     <div className="grid gap-6 md:grid-cols-2">
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm md:col-span-2"><div className="flex flex-col gap-5 sm:flex-row sm:items-center">{avatarUrl ? <img src={avatarUrl} alt={fullName || t.profilePage.title} className="h-20 w-20 rounded-full object-cover" /> : <div className="flex h-20 w-20 items-center justify-center rounded-full bg-zinc-100 text-2xl font-semibold text-zinc-500">{(fullName || email).charAt(0).toUpperCase()}</div>}<div className="min-w-0 flex-1"><h2 className="text-2xl font-semibold">{fullName || email}</h2><p className="mt-1 break-all text-zinc-500">{email}</p></div>{!editProfile && <button type="button" onClick={() => setEditProfile(true)} className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium">{t.profilePage.editProfile}</button>}</div>{editProfile && <form id="profile-form" onSubmit={saveProfile} className="mt-6 grid gap-4 border-t border-zinc-100 pt-6"><label className="grid gap-2 text-sm font-medium">{t.profilePage.fullName}<input value={fullName} onChange={(event) => setFullName(event.target.value)} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label><label className="grid gap-2 text-sm font-medium">{t.profilePage.email}<input value={email} readOnly className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 font-normal text-zinc-500" /></label><label className="grid gap-2 text-sm font-medium">{t.profilePage.editProfile}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadAvatar} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label></form>}{message && <p className="mt-4 text-sm text-zinc-600">{message}</p>}</section>
+      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm md:col-span-2">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+          <button type="button" onClick={() => editProfile && avatarInputRef.current?.click()} className="rounded-full" aria-label={t.profilePage.editProfile}>
+            {avatarUrl ? <img src={avatarUrl} alt={fullName || t.profilePage.title} className={`h-20 w-20 rounded-full object-cover ${editProfile ? "cursor-pointer" : ""}`} /> : <div className={`flex h-20 w-20 items-center justify-center rounded-full bg-zinc-100 text-2xl font-semibold text-zinc-500 ${editProfile ? "cursor-pointer" : ""}`}>{(fullName || email).charAt(0).toUpperCase()}</div>}
+          </button>
+          <div className="min-w-0 flex-1"><h2 className="text-2xl font-semibold">{fullName || email}</h2><p className="mt-1 break-all text-zinc-500">{email}</p></div>
+          {!editProfile && <button type="button" onClick={() => setEditProfile(true)} className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium">{t.profilePage.editProfile}</button>}
+        </div>
+        {editProfile && <form id="profile-form" onSubmit={saveProfile} className="mt-6 grid gap-4 border-t border-zinc-100 pt-6"><label className="grid gap-2 text-sm font-medium">{t.profilePage.fullName}<input value={fullName} onChange={(event) => setFullName(event.target.value)} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label><label className="grid gap-2 text-sm font-medium">{t.profilePage.email}<input value={email} readOnly className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 font-normal text-zinc-500" /></label><input id="profile-avatar-input" ref={avatarInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadAvatar} className="hidden" /></form>}
+        {message && <p className="mt-4 text-sm text-zinc-600">{message}</p>}
+      </section>
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm"><h2 className="text-xl font-semibold">{t.profilePage.notifications}</h2><div className="mt-5 grid gap-4 text-sm">{([['email_notifications', t.profilePage.emailNotifications], ['opportunity_updates', t.profilePage.opportunityUpdates], ['marketing_notifications', t.profilePage.marketingNotifications]] as const).map(([key, label]) => <label key={key} className="flex items-center justify-between gap-4"><span>{label}</span><input type="checkbox" checked={notifications[key]} onChange={(event) => updateNotifications(key, event.target.checked)} className="h-4 w-4" /></label>)}</div>{notificationMessage && <p className="mt-4 text-sm text-red-600">{notificationMessage}</p>}</section>
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm"><h2 className="text-xl font-semibold">{t.profilePage.favorites}</h2><p className="mt-2 text-sm text-zinc-500">{t.profilePage.favoritesDescription}</p><Link href="/favorites" className="mt-5 inline-block rounded-lg bg-black px-4 py-2 text-sm font-medium text-white">{t.profilePage.viewFavorites}</Link></section>
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm md:col-span-2"><h2 className="text-xl font-semibold">{t.profilePage.startedOpportunities}</h2>{startedOpportunities.length === 0 ? <p className="mt-4 text-sm text-zinc-500">{t.profilePage.noStartedOpportunities}</p> : <div className="mt-4 grid gap-3 sm:grid-cols-2">{startedOpportunities.map((opportunity) => <Link key={opportunity.id} href={`/opportunities/${opportunity.id}`} className="rounded-lg border border-zinc-200 p-4 hover:border-zinc-400"><p className="font-medium">{getLocalizedText(opportunity.title, language, "en") ?? t.profilePage.viewOpportunity}</p>{opportunity.status && <p className="mt-1 text-sm text-zinc-500">{opportunity.status}</p>}</Link>)}</div>}</section>
