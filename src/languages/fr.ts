@@ -55,6 +55,8 @@ const fr = {
       addAccount: "Ajouter un compte",
       editAccount: "Modifier le compte",
       deleteAccount: "Supprimer le compte",
+      deleteAccountConfirmation: "Voulez-vous supprimer définitivement votre compte ? Cette action est irréversible.",
+      deleteAccountError: "Impossible de supprimer le compte. Réessayez.",
       accountType: "Type de compte",
       bankAccount: "Compte bancaire",
       paypal: "PayPal",

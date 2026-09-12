@@ -55,6 +55,8 @@ const ja = {
       addAccount: "アカウントを追加",
       editAccount: "アカウントを編集",
       deleteAccount: "アカウントを削除",
+      deleteAccountConfirmation: "アカウントを完全に削除しますか？この操作は取り消せません。",
+      deleteAccountError: "アカウントを削除できませんでした。もう一度お試しください。",
       accountType: "アカウントの種類",
       bankAccount: "銀行口座",
       paypal: "PayPal",

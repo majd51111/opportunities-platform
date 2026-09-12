@@ -64,6 +64,20 @@ export default function ProfilePage() {
   const [notificationMessage, setNotificationMessage] = useState("");
   const [error, setError] = useState("");
 
+  async function deleteAccount() {
+    if (!user || !window.confirm(t.profilePage.deleteAccountConfirmation)) return;
+
+    setMessage("");
+    const { error: deleteError } = await getSupabaseBrowserClient().rpc("delete_my_account");
+    if (deleteError) {
+      setMessage(t.profilePage.deleteAccountError);
+      return;
+    }
+
+    await getSupabaseBrowserClient().auth.signOut();
+    window.location.assign("/");
+  }
+
   async function loadAccounts(userId: string) {
     setLoadingAccounts(true);
     const { data, error: loadError } = await getSupabaseBrowserClient().from("payout_details").select("id, account_type, account_holder_name, bank_name, iban, account_number, swift_bic, paypal_email, payoneer_email, wallet_address, network").eq("user_id", userId).order("created_at", { ascending: false });
@@ -222,7 +236,7 @@ export default function ProfilePage() {
       }
     }
   `}</style><main dir={dir} className="mx-auto w-full max-w-5xl px-6 py-6">
-    <div className="mb-8 flex flex-wrap items-center justify-between gap-4"><div><h1 className="text-3xl font-bold">{t.profilePage.title}</h1><p className="mt-2 text-zinc-500">{t.profilePage.profileInformation}</p></div></div>
+    <div className="mb-8 flex flex-wrap items-center justify-between gap-4"><div><h1 className="text-3xl font-bold">{t.profilePage.title}</h1><p className="mt-2 text-zinc-500">{t.profilePage.profileInformation}</p></div><button type="button" onClick={deleteAccount} className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50">{t.profilePage.deleteAccount}</button></div>
     <div className="grid gap-6 md:grid-cols-2">
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm md:col-span-2"><div className="flex flex-col gap-5 sm:flex-row sm:items-center">{avatarUrl ? <img src={avatarUrl} alt={fullName || t.profilePage.title} className="h-20 w-20 rounded-full object-cover" /> : <div className="flex h-20 w-20 items-center justify-center rounded-full bg-zinc-100 text-2xl font-semibold text-zinc-500">{(fullName || email).charAt(0).toUpperCase()}</div>}<div className="min-w-0 flex-1"><h2 className="text-2xl font-semibold">{fullName || email}</h2><p className="mt-1 break-all text-zinc-500">{email}</p></div><button type="button" onClick={() => setEditProfile((current) => !current)} className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium">{t.profilePage.editProfile}</button></div>{editProfile && <form onSubmit={saveProfile} className="mt-6 grid gap-4 border-t border-zinc-100 pt-6"><label className="grid gap-2 text-sm font-medium">{t.profilePage.fullName}<input value={fullName} onChange={(event) => setFullName(event.target.value)} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label><label className="grid gap-2 text-sm font-medium">{t.profilePage.email}<input value={email} readOnly className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 font-normal text-zinc-500" /></label><label className="grid gap-2 text-sm font-medium">{t.profilePage.editProfile}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadAvatar} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label><div className="flex gap-3"><button disabled={savingProfile} className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white">{t.profilePage.saveProfile}</button><button type="button" onClick={() => setEditProfile(false)} className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium">{t.profilePage.cancel}</button></div></form>}{message && <p className="mt-4 text-sm text-zinc-600">{message}</p>}</section>
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm"><h2 className="text-xl font-semibold">{t.profilePage.notifications}</h2><div className="mt-5 grid gap-4 text-sm">{([['email_notifications', t.profilePage.emailNotifications], ['opportunity_updates', t.profilePage.opportunityUpdates], ['marketing_notifications', t.profilePage.marketingNotifications]] as const).map(([key, label]) => <label key={key} className="flex items-center justify-between gap-4"><span>{label}</span><input type="checkbox" checked={notifications[key]} onChange={(event) => updateNotifications(key, event.target.checked)} className="h-4 w-4" /></label>)}</div>{notificationMessage && <p className="mt-4 text-sm text-red-600">{notificationMessage}</p>}</section>

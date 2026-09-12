@@ -96,6 +96,8 @@ export type LanguageDictionary = {
     addAccount: string;
     editAccount: string;
     deleteAccount: string;
+    deleteAccountConfirmation: string;
+    deleteAccountError: string;
     accountType: string;
     bankAccount: string;
     paypal: string;

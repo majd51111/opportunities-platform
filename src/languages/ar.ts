@@ -55,6 +55,8 @@ const ar = {
       addAccount: "إضافة حساب",
       editAccount: "تعديل الحساب",
       deleteAccount: "حذف الحساب",
+      deleteAccountConfirmation: "هل أنت متأكد من حذف حسابك نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.",
+      deleteAccountError: "تعذر حذف الحساب. حاول مرة أخرى.",
       accountType: "نوع الحساب",
       bankAccount: "الحساب البنكي",
       paypal: "PayPal",

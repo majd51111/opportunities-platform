@@ -55,6 +55,8 @@ const zh = {
       addAccount: "添加账户",
       editAccount: "编辑账户",
       deleteAccount: "删除账户",
+      deleteAccountConfirmation: "确定要永久删除账户吗？此操作无法撤销。",
+      deleteAccountError: "无法删除账户，请重试。",
       accountType: "账户类型",
       bankAccount: "银行账户",
       paypal: "PayPal",

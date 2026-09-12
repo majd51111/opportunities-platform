@@ -91,6 +91,8 @@ const en = {
       addAccount: "Add Account",
       editAccount: "Edit Account",
       deleteAccount: "Delete Account",
+      deleteAccountConfirmation: "Are you sure you want to permanently delete your account? This action cannot be undone.",
+      deleteAccountError: "Could not delete the account. Please try again.",
       accountType: "Account Type",
       bankAccount: "Bank Account",
       paypal: "PayPal",
