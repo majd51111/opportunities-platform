@@ -21,6 +21,7 @@
 
 body {
   min-height: 100vh;
+  overflow-x: hidden;
   background: linear-gradient(135deg, #edf9ff 0%, #dff4ff 42%, #eefaff 72%, #d8f0fc 100%);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;

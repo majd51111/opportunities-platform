@@ -137,10 +137,10 @@ export function SiteHeader() {
 
   return (
     <header className="border-b border-zinc-200 dark:border-zinc-800" dir={dir}>
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-3 overflow-hidden px-4 py-3 sm:px-6 sm:py-4">
         <Link
           href={routes.public.home}
-          className="flex items-center gap-2.5 text-sm font-semibold tracking-tight"
+          className="flex min-w-0 items-center gap-2.5 text-sm font-semibold tracking-tight"
           aria-label={navigationLabels.brand}
         >
           <img
@@ -148,7 +148,7 @@ export function SiteHeader() {
             alt=""
             className="h-12 w-12 rounded-full border border-blue-100 bg-white object-contain shadow-[0_4px_12px_rgba(37,99,235,0.18)] ring-2 ring-blue-50"
           />
-          <span>{navigationLabels.brand}</span>
+          <span className="truncate">{navigationLabels.brand}</span>
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
@@ -157,6 +157,18 @@ export function SiteHeader() {
               key={item.href}
               href={item.href}
               className="text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <nav className="order-3 flex w-full min-w-0 items-center justify-center gap-3 border-t border-zinc-100 pt-3 md:hidden" aria-label="Primary navigation">
+          {navItems.slice(0, 3).map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="min-w-0 flex-1 truncate rounded-lg px-2 py-2 text-center text-xs font-medium text-zinc-600 transition hover:bg-blue-50 hover:text-blue-700"
             >
               {item.label}
             </Link>
