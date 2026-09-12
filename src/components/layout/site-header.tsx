@@ -13,6 +13,7 @@ import { useLanguage } from "@/providers/app-providers";
 export function SiteHeader() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [canAccessAdmin, setCanAccessAdmin] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
@@ -31,10 +32,22 @@ export function SiteHeader() {
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
 
+    async function loadAvatar(currentUser: User | null) {
+      const avatarPath = currentUser?.user_metadata?.avatar_path;
+      if (!avatarPath) {
+        setAvatarUrl("");
+        return;
+      }
+
+      const { data } = await supabase.storage.from("avatars").createSignedUrl(avatarPath, 3600);
+      setAvatarUrl(data?.signedUrl ?? "");
+    }
+
     async function loadUserAccess() {
       const { data } = await supabase.auth.getUser();
       const currentUser = data.user;
       setUser(currentUser);
+      await loadAvatar(currentUser);
 
       if (!currentUser) {
         setCanAccessAdmin(false);
@@ -68,8 +81,13 @@ export function SiteHeader() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (!session?.user) setCanAccessAdmin(false);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      void loadAvatar(currentUser);
+      if (!currentUser) {
+        setAvatarUrl("");
+        setCanAccessAdmin(false);
+      }
     });
 
     return () => {
@@ -158,10 +176,10 @@ export function SiteHeader() {
                 aria-label={t.common.profile}
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-600 transition hover:border-[#6c5cf5] hover:text-[#4c3ecb]"
               >
-                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full rounded-full object-cover" /> : <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21a8 8 0 0 0-16 0" />
                   <circle cx="12" cy="7" r="4" />
-                </svg>
+                </svg>}
               </button>
               {accountMenuOpen && (
                 <div role="menu" className="absolute top-full z-20 mt-2 w-44 overflow-hidden rounded-lg border border-zinc-200 bg-white py-1 shadow-lg rtl:left-0 ltr:right-0">
