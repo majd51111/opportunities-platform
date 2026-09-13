@@ -256,7 +256,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                       event.currentTarget.onerror = null;
                       event.currentTarget.src = "/new-logo.png";
                     }}
-                    className="absolute start-4 top-4 z-20 h-11 w-11 rounded-xl border border-white/80 bg-white p-1.5 object-contain shadow-sm"
+                    className="pointer-events-none absolute start-4 top-4 z-20 h-14 w-14 rounded-2xl border border-white/80 bg-white p-2 object-contain shadow-md"
                   />
                 )}
                 {isNew && (
