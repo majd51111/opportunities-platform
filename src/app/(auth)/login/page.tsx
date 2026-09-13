@@ -31,14 +31,14 @@ export default function LoginPage() {
     setMessage("");
     setLoading(true);
     const supabase = getSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    const { data: authData, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setLoading(false);
     if (error) { setMessage(error.message); return; }
 
     const { data: profile } = await supabase
       .from("user_profiles")
       .select("status")
-      .eq("email", email.trim())
+      .eq("id", authData.user.id)
       .maybeSingle();
     if (profile?.status === "suspended" || profile?.status === "banned") {
       await supabase.auth.signOut();
@@ -46,12 +46,13 @@ export default function LoginPage() {
       return;
     }
 
-    setMessage(t.messages.loginSuccess);
     const requestedPath = new URLSearchParams(window.location.search).get("next");
     const destination = requestedPath?.startsWith("/") && !requestedPath.startsWith("//")
       ? requestedPath
       : "/opportunities";
-    setTimeout(() => router.push(destination), 1000);
+    setMessage(t.messages.loginSuccess);
+    router.replace(destination);
+    router.refresh();
   }
 
   async function handleOAuthLogin(provider: Extract<Provider, "google" | "apple">) {
