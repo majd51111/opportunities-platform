@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useLanguage } from "@/providers/app-providers";
 import { getPageCopy } from "@/languages/page-copy";
+import { env } from "@/config/env";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function ForgotPasswordPage() {
 
     try {
       const { error } = await getSupabaseBrowserClient().auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${env.appUrl}/reset-password`,
       });
 
       setLoading(false);

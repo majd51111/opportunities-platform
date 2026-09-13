@@ -9,6 +9,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useLanguage } from "@/providers/app-providers";
 import type { LanguageCode } from "@/languages";
 import LanguageSelector from "@/components/ui/LanguageSelector";
+import { env } from "@/config/env";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -70,7 +71,7 @@ export default function LoginPage() {
   async function handleOAuthLogin(provider: Extract<Provider, "google" | "apple">) {
     setMessage("");
     setLoading(true);
-    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    const callbackUrl = new URL("/auth/callback", env.appUrl);
     callbackUrl.searchParams.set("next", "/opportunities");
     const { error } = await getSupabaseBrowserClient().auth.signInWithOAuth({ provider, options: { redirectTo: callbackUrl.toString() } });
     if (error) { setLoading(false); setMessage(error.message); }

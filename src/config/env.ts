@@ -1,6 +1,6 @@
 const serverEnv = {
   nodeEnv: process.env.NODE_ENV ?? "development",
-  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? (process.env.NODE_ENV === "production" ? "https://www.gitopp.com" : "http://localhost:3000"),
 } as const;
 
 export const env = {
