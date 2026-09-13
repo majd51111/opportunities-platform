@@ -41,6 +41,7 @@ export default function AdminOpportunitiesPage() {
   const [translating, setTranslating] = useState(false);
   const [editForm, setEditForm] = useState({ title: "", short_description: "", description: "", direct_url: "", earnings_text: "", countries: "", devices: "", payment_methods: "", requirements: "" });
   const copy = getPageCopy(language).review;
+  const fieldCopy = getPageCopy(language).submit;
 
   async function loadSubmissions() {
     setLoading(true);
@@ -144,7 +145,24 @@ export default function AdminOpportunitiesPage() {
     setSubmissions((current) => current.filter((item) => item.id !== id));
   }
 
-  const editListFields = <><input value={editForm.countries} onChange={(event) => setEditForm({ ...editForm, countries: event.target.value })} placeholder="Countries" className="rounded-lg border border-zinc-300 px-3 py-2" /><input value={editForm.devices} onChange={(event) => setEditForm({ ...editForm, devices: event.target.value })} placeholder="Devices" className="rounded-lg border border-zinc-300 px-3 py-2" /><input value={editForm.payment_methods} onChange={(event) => setEditForm({ ...editForm, payment_methods: event.target.value })} placeholder="Payment methods" className="rounded-lg border border-zinc-300 px-3 py-2" /><textarea rows={3} value={editForm.requirements} onChange={(event) => setEditForm({ ...editForm, requirements: event.target.value })} placeholder="Requirements" className="rounded-lg border border-zinc-300 px-3 py-2" /></>;
+  const editListFields = <div className="grid gap-4 sm:grid-cols-2">
+    <label className="grid gap-1.5 text-sm font-medium text-zinc-700">
+      <span>{fieldCopy.countries}</span>
+      <input value={editForm.countries} onChange={(event) => setEditForm({ ...editForm, countries: event.target.value })} placeholder={fieldCopy.optional} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" />
+    </label>
+    <label className="grid gap-1.5 text-sm font-medium text-zinc-700">
+      <span>{fieldCopy.devices}</span>
+      <input value={editForm.devices} onChange={(event) => setEditForm({ ...editForm, devices: event.target.value })} placeholder={fieldCopy.optional} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" />
+    </label>
+    <label className="grid gap-1.5 text-sm font-medium text-zinc-700">
+      <span>{fieldCopy.paymentMethods}</span>
+      <input value={editForm.payment_methods} onChange={(event) => setEditForm({ ...editForm, payment_methods: event.target.value })} placeholder={fieldCopy.optional} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" />
+    </label>
+    <label className="grid gap-1.5 text-sm font-medium text-zinc-700 sm:col-span-2">
+      <span>{fieldCopy.requirements}</span>
+      <textarea rows={3} value={editForm.requirements} onChange={(event) => setEditForm({ ...editForm, requirements: event.target.value })} placeholder={fieldCopy.optional} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" />
+    </label>
+  </div>;
 
   return <main dir={dir} className="mx-auto w-full max-w-6xl px-6 py-12">
     <div className="mb-8 flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-3xl font-bold">{copy.title}</h1><p className="mt-2 text-zinc-500">{copy.description}</p></div><button type="button" disabled={translating || submissions.length === 0} onClick={() => void translateCurrentOpportunities()} className="inline-flex min-h-10 items-center justify-center rounded-lg border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-blue-600 disabled:cursor-not-allowed disabled:opacity-50">{translating ? copy.translating : copy.translate}</button></div>
