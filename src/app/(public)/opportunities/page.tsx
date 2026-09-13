@@ -31,6 +31,17 @@ const newBadgeColors = [
 
 const NEW_BADGE_DURATION_MS = 5 * 24 * 60 * 60 * 1000;
 
+function getOpportunityLogoUrl(opportunityUrl: string | null | undefined): string | null {
+  if (!opportunityUrl) return null;
+
+  try {
+    const hostname = new URL(opportunityUrl).hostname;
+    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=128`;
+  } catch {
+    return null;
+  }
+}
+
 export default function OpportunitiesPage() {
   const { t, dir, language } = useLanguage();
   const router = useRouter();
@@ -211,6 +222,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
             const createdAt = opportunity.created_at ? Date.parse(opportunity.created_at) : Number.NaN;
             const isNew = Number.isFinite(createdAt) && Date.now() - createdAt >= 0 && Date.now() - createdAt < NEW_BADGE_DURATION_MS;
             const badgeColor = newBadgeColors[Math.abs(Number(opportunity.id) || String(opportunity.id).split("").reduce((total, character) => total + character.charCodeAt(0), 0)) % newBadgeColors.length];
+            const logoUrl = getOpportunityLogoUrl(startUrl);
             
             return (
               <article
@@ -233,6 +245,20 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                 }}
               >
                 <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -left-10 h-44 w-72 rounded-[50%] border-[24px] border-white/30" />
+                {logoUrl && (
+                  <img
+                    src={logoUrl}
+                    alt=""
+                    width={44}
+                    height={44}
+                    loading="lazy"
+                    onError={(event) => {
+                      event.currentTarget.onerror = null;
+                      event.currentTarget.src = "/new-logo.png";
+                    }}
+                    className="absolute start-4 top-4 z-20 h-11 w-11 rounded-xl border border-white/80 bg-white p-1.5 object-contain shadow-sm"
+                  />
+                )}
                 {isNew && (
                   <span className={`pointer-events-none absolute end-4 top-4 z-20 rounded-full px-3 py-1 text-xs font-bold shadow-lg animate-[new-badge-shine_2.4s_ease-in-out_infinite] ${badgeColor}`}>
                     {newBadgeLabels[languageKey]}
