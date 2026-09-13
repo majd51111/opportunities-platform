@@ -99,7 +99,7 @@ export default function AdminOpportunitiesPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ title: submission.title, shortDescription: submission.short_description ?? "", description: submission.description ?? "", earningsText: submission.earnings_text || null }),
           });
-          const payload = await response.json() as { translations?: Record<string, { title: string; shortDescription: string; description: string; earningsText: string | null }>; error?: string };
+          const payload = await response.json() as { translations?: Record<string, { title: string; shortDescription: string; description: string; earningsText: string | null; countries: string[]; devices: string[]; paymentMethods: string[]; requirements: string[] }>; error?: string };
           if (!response.ok || !payload.translations) {
             const providerError = payload.error ?? "Translation failed";
             const retryMatch = providerError.match(/retry in ([\d.]+)s/i);
@@ -109,7 +109,7 @@ export default function AdminOpportunitiesPage() {
             }
             throw new Error(providerError);
           }
-          const rows = Object.entries(payload.translations).map(([languageCode, translation]) => ({ language_code: languageCode, title: translation.title, short_description: translation.shortDescription, description: translation.description, earnings_text: translation.earningsText }));
+          const rows = Object.entries(payload.translations).map(([languageCode, translation]) => ({ language_code: languageCode, title: translation.title, short_description: translation.shortDescription, description: translation.description, earnings_text: translation.earningsText, countries: translation.countries, devices: translation.devices, payment_methods: translation.paymentMethods, requirements: translation.requirements }));
           const { error } = await getSupabaseBrowserClient().rpc("save_opportunity_translations", { p_opportunity_id: Number(submission.id), p_translations: rows });
           if (error) throw error;
           translatedCount += 1;

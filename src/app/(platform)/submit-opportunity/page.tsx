@@ -218,10 +218,14 @@ export default function SubmitOpportunityPage() {
           shortDescription: form.shortDescription.trim(),
           description: form.description.trim(),
           earningsText: form.earnings.trim() || null,
+          countries: toList(form.countries),
+          devices: toList(form.devices),
+          paymentMethods: toList(form.paymentMethods),
+          requirements: toList(form.requirements),
         }),
       });
       const translationPayload = await translationResponse.json() as {
-        translations?: Record<string, { title: string; shortDescription: string; description: string; earningsText: string | null }>;
+        translations?: Record<string, { title: string; shortDescription: string; description: string; earningsText: string | null; countries: string[]; devices: string[]; paymentMethods: string[]; requirements: string[] }>;
       };
 
       if (translationResponse.ok && translationPayload.translations) {
@@ -231,6 +235,10 @@ export default function SubmitOpportunityPage() {
           short_description: translation.shortDescription,
           description: translation.description,
           earnings_text: translation.earningsText,
+          countries: translation.countries,
+          devices: translation.devices,
+          payment_methods: translation.paymentMethods,
+          requirements: translation.requirements,
         }));
         const { error: translationSaveError } = await supabase.rpc("save_opportunity_translations", {
           p_opportunity_id: Number(opportunityId),

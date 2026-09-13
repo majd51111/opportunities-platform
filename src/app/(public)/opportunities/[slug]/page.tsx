@@ -78,7 +78,7 @@ export default function OpportunityDetailsPage() {
 
       const { data: translations } = await supabase
         .from("opportunity_translations")
-        .select("language_code, title, short_description, description, earnings_text")
+        .select("language_code, title, short_description, description, earnings_text, countries, devices, payment_methods, requirements")
         .eq("opportunity_id", data.id);
 
       const translationMap = new Map(
@@ -94,6 +94,10 @@ export default function OpportunityDetailsPage() {
         short_description: localized?.short_description || localized?.description || data.short_description,
         description: localized?.description ?? data.description,
         earnings_text: localized?.earnings_text ?? data.earnings_text,
+        countries: localized?.countries ?? data.countries,
+        devices: localized?.devices ?? data.devices,
+        payment_methods: localized?.payment_methods ?? data.payment_methods,
+        requirements: localized?.requirements ?? data.requirements,
       });
       setLoading(false);
     }

@@ -10,6 +10,10 @@ type TranslationInput = {
   shortDescription: string;
   description: string;
   earningsText: string | null;
+  countries: string[];
+  devices: string[];
+  paymentMethods: string[];
+  requirements: string[];
 };
 
 type TranslationOutput = Record<SupportedLanguage, TranslationInput>;
@@ -23,7 +27,11 @@ function isTranslationOutput(value: unknown): value is TranslationOutput {
     return typeof record.title === "string"
       && typeof record.shortDescription === "string"
       && typeof record.description === "string"
-      && (record.earningsText === null || typeof record.earningsText === "string");
+      && (record.earningsText === null || typeof record.earningsText === "string")
+      && Array.isArray(record.countries) && record.countries.every((item) => typeof item === "string")
+      && Array.isArray(record.devices) && record.devices.every((item) => typeof item === "string")
+      && Array.isArray(record.paymentMethods) && record.paymentMethods.every((item) => typeof item === "string")
+      && Array.isArray(record.requirements) && record.requirements.every((item) => typeof item === "string");
   });
 }
 
@@ -98,7 +106,7 @@ export async function POST(request: Request) {
           parts: [{
             text: [
               "Translate opportunity listing content naturally and accurately.",
-              "Return only valid JSON with language keys and fields title, shortDescription, description, earningsText.",
+              "Return only valid JSON with language keys and fields title, shortDescription, description, earningsText, countries, devices, paymentMethods, requirements.",
               "Preserve URLs, numbers, product names, and meaning. Use null for a missing earningsText.",
               JSON.stringify({
             targetLanguages: Object.fromEntries(supportedLanguages.map((language) => [language, languageNames[language]])),
