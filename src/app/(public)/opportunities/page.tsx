@@ -246,7 +246,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                   />
                 )}
 
-                <h2 className="text-xl font-semibold">{title}</h2>
+                <h2 className="min-h-20 pt-8 text-xl font-semibold leading-7">{title}</h2>
                 {category && (
                   <p className="mt-1 text-sm text-zinc-500">{category.name}</p>
                 )}
