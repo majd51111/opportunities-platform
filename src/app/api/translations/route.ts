@@ -60,9 +60,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid translation request." }, { status: 400 });
   }
 
-  if (!input.title?.trim() || !input.shortDescription?.trim() || !input.description?.trim()) {
+  if (!input.title?.trim() || (!input.shortDescription?.trim() && !input.description?.trim())) {
     return NextResponse.json({ error: "Translation content is incomplete." }, { status: 400 });
   }
+
+  const sourceDescription = input.description?.trim() || input.shortDescription.trim();
 
   const languageNames: Record<SupportedLanguage, string> = {
     ar: "Arabic",
@@ -75,7 +77,10 @@ export async function POST(request: Request) {
     zh: "Simplified Chinese",
   };
 
-  const model = process.env.GEMINI_TRANSLATION_MODEL ?? "gemini-3.6-flash";
+  const configuredModel = process.env.GEMINI_TRANSLATION_MODEL?.trim();
+  const model = configuredModel && /^gemini-[a-z0-9.-]+$/i.test(configuredModel)
+    ? configuredModel
+    : "gemini-2.5-flash";
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
     {
@@ -97,7 +102,7 @@ export async function POST(request: Request) {
               "Preserve URLs, numbers, product names, and meaning. Use null for a missing earningsText.",
               JSON.stringify({
             targetLanguages: Object.fromEntries(supportedLanguages.map((language) => [language, languageNames[language]])),
-            source: input,
+            source: { ...input, description: sourceDescription },
               }),
             ].join("\n"),
           }],
