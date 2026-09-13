@@ -256,7 +256,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                       event.currentTarget.onerror = null;
                       event.currentTarget.src = "/new-logo.png";
                     }}
-                    className="pointer-events-none absolute start-4 top-3 z-20 h-16 w-16 rounded-2xl border border-white/80 bg-white p-2.5 object-contain shadow-md"
+                    className="pointer-events-none absolute start-4 top-3 z-20 h-20 w-20 rounded-2xl border border-white/80 bg-white p-3 object-contain shadow-md"
                   />
                 )}
                 {isNew && (
@@ -272,7 +272,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                   />
                 )}
 
-                <h2 className="min-h-28 pt-20 text-xl font-semibold leading-7">{title}</h2>
+                <h2 className="min-h-32 pt-24 text-xl font-semibold leading-7">{title}</h2>
                 {category && (
                   <p className="mt-1 text-sm text-zinc-500">{category.name}</p>
                 )}
