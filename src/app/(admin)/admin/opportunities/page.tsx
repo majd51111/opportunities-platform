@@ -49,7 +49,7 @@ export default function AdminOpportunitiesPage() {
     if (!user) { setMessage(copy.access); setLoading(false); return; }
     const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
     if (!role || !["admin", "support"].includes(role.role)) { setMessage(copy.access); setLoading(false); return; }
-    const { data, error } = await supabase.from("opportunities").select("id, title, slug, short_description, description, direct_url, earnings_text, countries, devices, payment_methods, requirements, status").in("status", ["pending", "published"]).order("created_at", { ascending: true });
+    const { data, error } = await supabase.from("opportunities").select("id, title, slug, short_description, description, direct_url, earnings_text, countries, devices, payment_methods, requirements, status").eq("status", "pending").order("created_at", { ascending: true });
     setLoading(false);
     if (error) { setMessage(`${copy.error} ${error.message}`); return; }
     if ((data ?? []).length === 0) {
