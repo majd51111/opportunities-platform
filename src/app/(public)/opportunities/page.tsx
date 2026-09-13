@@ -9,6 +9,28 @@ import { useLanguage } from "@/providers/app-providers";
 import type { Opportunity } from "@/types";
 import type { LanguageCode } from "@/languages";
 import { getLocalizedText, normalizeOpportunityCategory, localizeDevice, localizeVerification, getOpportunityStartUrl } from "@/types";
+
+const newBadgeLabels: Record<LanguageCode, string> = {
+  ar: "جديد",
+  en: "New",
+  es: "Nuevo",
+  fr: "Nouveau",
+  de: "Neu",
+  pt: "Novo",
+  ja: "新着",
+  zh: "新品",
+};
+
+const newBadgeColors = [
+  "bg-[#e11d48] text-white",
+  "bg-[#ea580c] text-white",
+  "bg-[#0891b2] text-white",
+  "bg-[#15803d] text-white",
+  "bg-[#7c3aed] text-white",
+];
+
+const NEW_BADGE_DURATION_MS = 5 * 24 * 60 * 60 * 1000;
+
 export default function OpportunitiesPage() {
   const { t, dir, language } = useLanguage();
   const router = useRouter();
@@ -34,7 +56,7 @@ export default function OpportunitiesPage() {
       const { data, error } = await supabase
         .from("opportunities")
         .select(
-          "id, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, image_url, direct_url, category_id"
+          "id, created_at, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, image_url, direct_url, category_id"
         )
         .eq("status", "published")
         .order("created_at", { ascending: false });
@@ -186,6 +208,9 @@ const deviceList =
 
 const localizedVerification = localizeVerification(opportunity.verification_status, languageKey) ?? opportunity.verification_status;
             const startUrl = getOpportunityStartUrl(opportunity) ?? opportunity.direct_url ?? opportunity.source_url;
+            const createdAt = opportunity.created_at ? Date.parse(opportunity.created_at) : Number.NaN;
+            const isNew = Number.isFinite(createdAt) && Date.now() - createdAt >= 0 && Date.now() - createdAt < NEW_BADGE_DURATION_MS;
+            const badgeColor = newBadgeColors[Math.abs(Number(opportunity.id) || String(opportunity.id).split("").reduce((total, character) => total + character.charCodeAt(0), 0)) % newBadgeColors.length];
             
             return (
               <article
@@ -208,6 +233,11 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                 }}
               >
                 <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -left-10 h-44 w-72 rounded-[50%] border-[24px] border-white/30" />
+                {isNew && (
+                  <span className={`pointer-events-none absolute end-4 top-4 z-20 rounded-full px-3 py-1 text-xs font-bold shadow-lg animate-[new-badge-shine_2.4s_ease-in-out_infinite] ${badgeColor}`}>
+                    {newBadgeLabels[languageKey]}
+                  </span>
+                )}
                 {opportunity.image_url && (
                   <img
                     src={opportunity.image_url}

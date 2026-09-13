@@ -27,6 +27,17 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+@keyframes new-badge-shine {
+  0%, 100% {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+  50% {
+    filter: brightness(1.35);
+    transform: scale(1.04);
+  }
+}
+
 header,
 footer {
   background: var(--surface-muted);

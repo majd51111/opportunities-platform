@@ -405,6 +405,7 @@ export function localizeVerification(
 
 export type Opportunity = {
   id: OpportunityId;
+  created_at?: string | null;
   title: string;
   slug: string;
   short_description: string | null;
