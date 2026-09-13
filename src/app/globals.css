@@ -29,12 +29,16 @@ body {
 
 @keyframes new-badge-shine {
   0%, 100% {
+    color: #b77900;
     filter: brightness(1);
+    text-shadow: 0 1px 0 #fff7bf, 0 0 5px rgba(251, 191, 36, 0.65);
     transform: scale(1);
   }
   50% {
-    filter: brightness(1.35);
-    transform: scale(1.04);
+    color: #facc15;
+    filter: brightness(1.5);
+    text-shadow: 0 1px 0 #fffde7, 0 0 14px rgba(250, 204, 21, 1), 0 0 24px rgba(245, 158, 11, 0.75);
+    transform: scale(1.06);
   }
 }
 

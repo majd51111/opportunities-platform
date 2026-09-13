@@ -21,14 +21,6 @@ const newBadgeLabels: Record<LanguageCode, string> = {
   zh: "新品",
 };
 
-const newBadgeColors = [
-  "bg-[#e11d48] text-white",
-  "bg-[#ea580c] text-white",
-  "bg-[#0891b2] text-white",
-  "bg-[#15803d] text-white",
-  "bg-[#7c3aed] text-white",
-];
-
 const NEW_BADGE_DURATION_MS = 5 * 24 * 60 * 60 * 1000;
 
 function getOpportunityLogoUrl(opportunityUrl: string | null | undefined): string | null {
@@ -221,7 +213,6 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
             const startUrl = getOpportunityStartUrl(opportunity) ?? opportunity.direct_url ?? opportunity.source_url;
             const createdAt = opportunity.created_at ? Date.parse(opportunity.created_at) : Number.NaN;
             const isNew = Number.isFinite(createdAt) && Date.now() - createdAt >= 0 && Date.now() - createdAt < NEW_BADGE_DURATION_MS;
-            const badgeColor = newBadgeColors[Math.abs(Number(opportunity.id) || String(opportunity.id).split("").reduce((total, character) => total + character.charCodeAt(0), 0)) % newBadgeColors.length];
             const logoUrl = getOpportunityLogoUrl(startUrl);
             
             return (
@@ -260,7 +251,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                   />
                 )}
                 {isNew && (
-                  <span className={`pointer-events-none absolute end-4 top-4 z-20 rounded-full px-3 py-1 text-xs font-bold shadow-lg animate-[new-badge-shine_2.4s_ease-in-out_infinite] ${badgeColor}`}>
+                  <span className="pointer-events-none absolute end-4 top-4 z-20 animate-[new-badge-shine_1.8s_ease-in-out_infinite] px-3 py-1 text-sm font-extrabold text-[#b77900] [text-shadow:0_1px_0_#fff7bf,0_0_8px_rgba(251,191,36,0.9)]">
                     {newBadgeLabels[languageKey]}
                   </span>
                 )}
