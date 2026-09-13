@@ -35,6 +35,22 @@ function isTranslationOutput(value: unknown): value is TranslationOutput {
   });
 }
 
+function parseTranslationJson(content: string): unknown {
+  const cleaned = content
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start < 0 || end <= start) throw new Error("No JSON object in translation response");
+    return JSON.parse(cleaned.slice(start, end + 1));
+  }
+}
+
 export async function POST(request: Request) {
   const cookieStore = await cookies();
   const supabase = createServerClient(
@@ -142,7 +158,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const translations: unknown = JSON.parse(content);
+    const translations: unknown = parseTranslationJson(content);
     if (!isTranslationOutput(translations)) throw new Error("Invalid translation shape");
     return NextResponse.json({ translations });
   } catch {

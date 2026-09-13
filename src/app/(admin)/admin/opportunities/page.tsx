@@ -97,7 +97,16 @@ export default function AdminOpportunitiesPage() {
           const response = await fetch("/api/translations", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title: submission.title, shortDescription: submission.short_description ?? "", description: submission.description ?? "", earningsText: submission.earnings_text || null }),
+            body: JSON.stringify({
+              title: submission.title,
+              shortDescription: submission.short_description ?? "",
+              description: submission.description ?? "",
+              earningsText: submission.earnings_text || null,
+              countries: submission.countries ?? [],
+              devices: submission.devices ?? [],
+              paymentMethods: submission.payment_methods ?? [],
+              requirements: submission.requirements ?? [],
+            }),
           });
           const payload = await response.json() as { translations?: Record<string, { title: string; shortDescription: string; description: string; earningsText: string | null; countries: string[]; devices: string[]; paymentMethods: string[]; requirements: string[] }>; error?: string };
           if (!response.ok || !payload.translations) {
