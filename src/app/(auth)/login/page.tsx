@@ -31,9 +31,21 @@ export default function LoginPage() {
     setMessage("");
     setLoading(true);
     const supabase = getSupabaseBrowserClient();
-    const { data: authData, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    let authData: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>["data"];
+    let error: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>["error"];
+    try {
+      ({ data: authData, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password }));
+    } catch (loginError) {
+      setLoading(false);
+      setMessage(loginError instanceof Error ? loginError.message : (isArabic ? "تعذر الاتصال بخدمة تسجيل الدخول." : "Could not connect to the sign-in service."));
+      return;
+    }
     setLoading(false);
     if (error) { setMessage(error.message); return; }
+    if (!authData.user) {
+      setMessage(isArabic ? "تعذر إنشاء جلسة تسجيل الدخول." : "Could not create a sign-in session.");
+      return;
+    }
 
     const { data: profile } = await supabase
       .from("user_profiles")
