@@ -87,7 +87,26 @@ export default function AdminLayout({
           </Link>
         </nav>
       </aside>
-      <main className="flex-1 px-6 py-10">{children}</main>
+      <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-10">
+        <nav className="mb-6 grid grid-cols-2 gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-2 md:hidden" aria-label={t.common.admin}>
+          {adminNav.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="min-w-0 rounded-md px-2 py-3 text-center text-sm font-medium leading-5 text-zinc-700 transition hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-900"
+            >
+              {item.label}
+            </Link>
+          ))}
+          <Link
+            href={routes.public.opportunities}
+            className="col-span-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-center text-sm font-medium text-zinc-700 transition hover:border-[#6c5cf5] hover:bg-[#f0efff] hover:text-[#4c3ecb]"
+          >
+            {t.common.backToHome}
+          </Link>
+        </nav>
+        {children}
+      </main>
     </div>
   );
 }

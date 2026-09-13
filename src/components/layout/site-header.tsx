@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
@@ -17,6 +18,9 @@ export function SiteHeader() {
   const [canAccessAdmin, setCanAccessAdmin] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
+  const accountButtonRef = useRef<HTMLButtonElement>(null);
+  const accountMenuPortalRef = useRef<HTMLDivElement>(null);
+  const [accountMenuPosition, setAccountMenuPosition] = useState({ top: 0, left: 0, right: 0 });
   const { t, dir, language } = useLanguage();
   const navigationLabels = {
     ar: { support: "الدعم والمساعدة", about: "من نحن", brand: "بوابة الفرص" },
@@ -97,7 +101,7 @@ export function SiteHeader() {
 
   useEffect(() => {
     function closeAccountMenu(event: MouseEvent) {
-      if (!accountMenuRef.current?.contains(event.target as Node)) {
+      if (!accountMenuRef.current?.contains(event.target as Node) && !accountMenuPortalRef.current?.contains(event.target as Node)) {
         setAccountMenuOpen(false);
       }
     }
@@ -105,6 +109,30 @@ export function SiteHeader() {
     document.addEventListener("mousedown", closeAccountMenu);
     return () => document.removeEventListener("mousedown", closeAccountMenu);
   }, []);
+
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+
+    function updateAccountMenuPosition() {
+      const button = accountButtonRef.current;
+      if (!button) return;
+
+      const bounds = button.getBoundingClientRect();
+      setAccountMenuPosition({
+        top: bounds.bottom + 8,
+        left: bounds.left,
+        right: window.innerWidth - bounds.right,
+      });
+    }
+
+    updateAccountMenuPosition();
+    window.addEventListener("resize", updateAccountMenuPosition);
+    window.addEventListener("scroll", updateAccountMenuPosition, true);
+    return () => {
+      window.removeEventListener("resize", updateAccountMenuPosition);
+      window.removeEventListener("scroll", updateAccountMenuPosition, true);
+    };
+  }, [accountMenuOpen]);
 
   async function handleSignOut() {
     const supabase = getSupabaseBrowserClient();
@@ -136,8 +164,8 @@ export function SiteHeader() {
   ];
 
   return (
-    <header className="border-b border-zinc-200 dark:border-zinc-800" dir={dir}>
-      <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-3 overflow-hidden px-4 py-3 sm:px-6 sm:py-4">
+    <header className="relative z-30 isolate border-b border-zinc-200 dark:border-zinc-800" dir={dir}>
+      <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-3 overflow-visible px-4 py-3 sm:px-6 sm:py-4">
         <Link
           href={routes.public.home}
           className="flex min-w-0 items-center gap-2.5 text-sm font-semibold tracking-tight"
@@ -181,6 +209,7 @@ export function SiteHeader() {
           {user ? (
             <div ref={accountMenuRef} className="relative">
               <button
+                ref={accountButtonRef}
                 type="button"
                 onClick={() => setAccountMenuOpen((open) => !open)}
                 aria-expanded={accountMenuOpen}
@@ -193,8 +222,13 @@ export function SiteHeader() {
                   <circle cx="12" cy="7" r="4" />
                 </svg>}
               </button>
-              {accountMenuOpen && (
-                <div role="menu" className="absolute top-full z-20 mt-2 w-44 overflow-hidden rounded-lg border border-zinc-200 bg-white py-1 shadow-lg rtl:left-0 ltr:right-0">
+              {accountMenuOpen && typeof document !== "undefined" && createPortal(
+                <div
+                  ref={accountMenuPortalRef}
+                  role="menu"
+                  className="fixed z-[10000] w-48 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-zinc-200 bg-white py-1 text-zinc-700 shadow-lg"
+                  style={{ top: accountMenuPosition.top, ...(dir === "rtl" ? { left: accountMenuPosition.left } : { right: accountMenuPosition.right }) }}
+                >
                   <Link href={routes.platform.profile} role="menuitem" onClick={() => setAccountMenuOpen(false)} className="block px-4 py-2 text-sm text-zinc-700 transition hover:bg-[#f0efff] hover:text-[#4c3ecb]">
                     {t.common.profile}
                   </Link>
@@ -206,7 +240,8 @@ export function SiteHeader() {
                   <button type="button" role="menuitem" onClick={handleSignOut} className="w-full px-4 py-2 text-start text-sm text-zinc-700 transition hover:bg-[#f0efff] hover:text-[#4c3ecb]">
                     {t.common.signOut}
                   </button>
-                </div>
+                </div>,
+                document.body,
               )}
             </div>
           ) : (
