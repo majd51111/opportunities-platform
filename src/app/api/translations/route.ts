@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
 const supportedLanguages = ["ar", "en", "es", "fr", "de", "pt", "ja", "zh"] as const;
+const TRANSLATION_PROVIDER_TIMEOUT_MS = 45_000;
 type SupportedLanguage = (typeof supportedLanguages)[number];
 
 type TranslationInput = {
@@ -107,9 +108,14 @@ export async function POST(request: Request) {
   const model = configuredModel && /^gemini-[a-z0-9.-]+$/i.test(configuredModel)
     ? configuredModel
     : "gemini-2.5-flash";
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
-    {
+  const providerController = new AbortController();
+  const providerTimeout = setTimeout(() => providerController.abort(), TRANSLATION_PROVIDER_TIMEOUT_MS);
+  let response: Response;
+
+  try {
+    response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+      {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -135,8 +141,18 @@ export async function POST(request: Request) {
         },
       ],
     }),
-    },
-  );
+        signal: providerController.signal,
+      },
+    );
+  } catch (providerError) {
+    const message = providerError instanceof Error && providerError.name === "AbortError"
+      ? "Translation provider timed out."
+      : "Could not connect to the translation provider.";
+    console.error("Gemini translation request failed", message);
+    return NextResponse.json({ error: message }, { status: 504 });
+  } finally {
+    clearTimeout(providerTimeout);
+  }
 
   if (!response.ok) {
     const providerPayload = await response.json().catch(() => null) as {

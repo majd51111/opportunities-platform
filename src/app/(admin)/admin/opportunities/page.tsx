@@ -90,31 +90,41 @@ export default function AdminOpportunitiesPage() {
     let failedCount = 0;
     let lastError = "";
     const wait = (milliseconds: number) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+    const requestTranslation = async (submission: Submission) => {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 60_000);
+      try {
+        return await fetch("/api/translations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            title: submission.title,
+            shortDescription: submission.short_description ?? "",
+            description: submission.description ?? "",
+            earningsText: submission.earnings_text || null,
+            countries: submission.countries ?? [],
+            devices: submission.devices ?? [],
+            paymentMethods: submission.payment_methods ?? [],
+            requirements: submission.requirements ?? [],
+          }),
+        });
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    };
 
     for (const submission of submissions) {
       let completed = false;
       for (let attempt = 0; attempt < 3 && !completed; attempt += 1) {
         try {
-          const response = await fetch("/api/translations", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              title: submission.title,
-              shortDescription: submission.short_description ?? "",
-              description: submission.description ?? "",
-              earningsText: submission.earnings_text || null,
-              countries: submission.countries ?? [],
-              devices: submission.devices ?? [],
-              paymentMethods: submission.payment_methods ?? [],
-              requirements: submission.requirements ?? [],
-            }),
-          });
+          const response = await requestTranslation(submission);
           const payload = await response.json() as { translations?: Record<string, { title: string; shortDescription: string; description: string; earningsText: string | null; countries: string[]; devices: string[]; paymentMethods: string[]; requirements: string[] }>; error?: string };
           if (!response.ok || !payload.translations) {
             const providerError = payload.error ?? "Translation failed";
             const retryMatch = providerError.match(/retry in ([\d.]+)s/i);
-            if (retryMatch && attempt < 2) {
-              await wait(Math.min(Math.ceil(Number(retryMatch[1]) * 1000) + 1000, 60000));
+            if (retryMatch && attempt < 1) {
+              await wait(Math.min(Math.ceil(Number(retryMatch[1]) * 1000) + 1000, 15000));
               continue;
             }
             throw new Error(providerError);
@@ -126,7 +136,7 @@ export default function AdminOpportunitiesPage() {
           completed = true;
         } catch (translationError) {
           lastError = translationError instanceof Error ? translationError.message : "Translation failed";
-          if (attempt < 2) await wait(2000);
+          if (attempt < 1) await wait(2000);
         }
       }
       if (!completed) failedCount += 1;
