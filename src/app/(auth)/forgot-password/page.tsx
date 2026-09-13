@@ -20,12 +20,17 @@ export default function ForgotPasswordPage() {
     setMessage("");
     setLoading(true);
 
-    const { error } = await getSupabaseBrowserClient().auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: window.location.origin + "/reset-password",
-    });
+    try {
+      const { error } = await getSupabaseBrowserClient().auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
 
-    setLoading(false);
-    setMessage(error ? copy.error : copy.success);
+      setLoading(false);
+      setMessage(error ? `${copy.error} ${error.message}` : copy.success);
+    } catch (requestError) {
+      setLoading(false);
+      setMessage(requestError instanceof Error ? `${copy.error} ${requestError.message}` : copy.error);
+    }
   }
 
   return (
