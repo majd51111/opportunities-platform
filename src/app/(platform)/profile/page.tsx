@@ -169,7 +169,10 @@ export default function ProfilePage() {
     if (!user) return;
     const previous = notifications; const next = { ...notifications, [key]: value }; setNotifications(next); setNotificationMessage("");
     const { error: saveError } = await getSupabaseBrowserClient().from("notification_preferences").upsert({ user_id: user.id, ...next, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
-    if (saveError) { setNotifications(previous); setNotificationMessage(t.profilePage.notificationSaveError); }
+    if (saveError) {
+      setNotifications(previous);
+      setNotificationMessage(`${t.profilePage.notificationSaveError} ${saveError.message}`);
+    }
   }
 
   if (loading) return <main dir={dir} className="mx-auto w-full max-w-5xl px-6 py-16"><p className="text-zinc-500">{t.profilePage.loading}</p></main>;
