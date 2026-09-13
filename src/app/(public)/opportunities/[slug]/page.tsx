@@ -32,13 +32,20 @@ export default function OpportunityDetailsPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace("/login"); return; }
 
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const canReviewPending = roleData?.role === "admin" || roleData?.role === "support";
+
       const numericId = /^\d+$/.test(slug) ? Number(slug) : null;
       let opportunityQuery = supabase
         .from("opportunities")
         .select(
           "id, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id"
         )
-        .eq("status", "published");
+        .in("status", canReviewPending ? ["pending", "published"] : ["published"]);
 
       opportunityQuery = numericId === null
         ? opportunityQuery.eq("slug", slug)
@@ -55,7 +62,7 @@ export default function OpportunityDetailsPage() {
             .select(
               "id, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id"
             )
-            .eq("status", "published")
+            .in("status", canReviewPending ? ["pending", "published"] : ["published"])
             .eq("id", Number(prefixedId[1]))
             .maybeSingle();
           data = fallback.data;
