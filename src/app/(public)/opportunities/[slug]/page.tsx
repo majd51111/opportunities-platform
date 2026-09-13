@@ -37,7 +37,8 @@ export default function OpportunityDetailsPage() {
         .from("opportunities")
         .select(
           "id, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id"
-        );
+        )
+        .eq("status", "published");
 
       opportunityQuery = numericId === null
         ? opportunityQuery.eq("slug", slug)
@@ -54,6 +55,7 @@ export default function OpportunityDetailsPage() {
             .select(
               "id, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id"
             )
+            .eq("status", "published")
             .eq("id", Number(prefixedId[1]))
             .maybeSingle();
           data = fallback.data;
