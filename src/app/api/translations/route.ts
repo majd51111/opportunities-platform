@@ -61,8 +61,10 @@ export async function POST(request: Request) {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll() {
-          // The translation endpoint only needs to validate the current session.
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
         },
       },
     },
