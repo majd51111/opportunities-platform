@@ -13,6 +13,7 @@ export {
   joinLocalizedList,
   joinLocalizedOpportunityList,
   localizeCountry,
+  localizeCategory,
   localizeRequirement,
   normalizeOpportunityCategory,
   normalizeOpportunitySourceUrl,

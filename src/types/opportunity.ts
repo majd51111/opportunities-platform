@@ -248,6 +248,66 @@ export function joinLocalizedOpportunityList(
   return normalized.join(language === "ar" ? "، " : ", ");
 }
 
+const categoryTranslations: Record<string, Record<LanguageCode, string>> = {
+  "العمل الحر": {
+    ar: "العمل الحر",
+    en: "Freelancing",
+    es: "Trabajo freelance",
+    fr: "Travail indépendant",
+    de: "Freiberufliche Arbeit",
+    pt: "Trabalho freelance",
+    ja: "フリーランス",
+    zh: "自由职业",
+  },
+  الاستبيانات: {
+    ar: "الاستبيانات",
+    en: "Surveys",
+    es: "Encuestas",
+    fr: "Sondages",
+    de: "Umfragen",
+    pt: "Pesquisas",
+    ja: "アンケート",
+    zh: "问卷调查",
+  },
+  "التطبيقات والمواقع": {
+    ar: "التطبيقات والمواقع",
+    en: "Apps and websites",
+    es: "Aplicaciones y sitios web",
+    fr: "Applications et sites web",
+    de: "Apps und Websites",
+    pt: "Aplicativos e sites",
+    ja: "アプリとウェブサイト",
+    zh: "应用和网站",
+  },
+  التسويق: {
+    ar: "التسويق",
+    en: "Marketing",
+    es: "Marketing",
+    fr: "Marketing",
+    de: "Marketing",
+    pt: "Marketing",
+    ja: "マーケティング",
+    zh: "营销",
+  },
+  "العمل عن بعد": {
+    ar: "العمل عن بعد",
+    en: "Remote work",
+    es: "Trabajo remoto",
+    fr: "Travail à distance",
+    de: "Remote-Arbeit",
+    pt: "Trabalho remoto",
+    ja: "リモートワーク",
+    zh: "远程工作",
+  },
+};
+
+export function localizeCategory(value: unknown, language: LanguageCode = "en"): string | null {
+  const text = getLocalizedText(value, language, "en");
+  if (!text) return null;
+
+  return categoryTranslations[text.trim()]?.[language] ?? text;
+}
+
 const deviceTranslations: Record<string, Record<LanguageCode, string>> = {
   computer: {
     ar: "كمبيوتر",

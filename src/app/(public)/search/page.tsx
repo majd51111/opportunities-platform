@@ -7,7 +7,7 @@ import { countriesByLanguage } from "@/lib/countries";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useLanguage } from "@/providers/app-providers";
 import type { Opportunity } from "@/types";
-import { getLocalizedText, joinLocalizedList, normalizeOpportunityCategory, localizeDevice } from "@/types";
+import { getLocalizedText, joinLocalizedList, normalizeOpportunityCategory, localizeCategory, localizeDevice } from "@/types";
 
 export default function SearchPage() {
   const { t, dir, language } = useLanguage();
@@ -18,7 +18,7 @@ export default function SearchPage() {
   const [categoryId, setCategoryId] = useState("");
   const [device, setDevice] = useState("");
   const [country, setCountry] = useState("");
-  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: number; name: unknown }[]>([]);
   const countryOptions = countriesByLanguage[language] ?? countriesByLanguage.en;
 useEffect(() => {
   async function loadCategories() {
@@ -109,7 +109,7 @@ useEffect(() => {
 
   {categories.map((category) => (
     <option key={category.id} value={category.id}>
-      {getLocalizedText(category.name, language, "en") ?? category.name}
+      {localizeCategory(category.name, language) ?? ""}
     </option>
   ))}
 </select>
@@ -177,7 +177,7 @@ useEffect(() => {
                   >
                     <h2 className="text-xl font-semibold">{title}</h2>
                     {category && (
-                      <p className="mt-1 text-sm text-zinc-500">{getLocalizedText(category.name, language, "en") ?? category.name}</p>
+                      <p className="mt-1 text-sm text-zinc-500">{localizeCategory(category.name, language) ?? category.name}</p>
                     )}
                     {opportunity.verification_status === "verified" && (
                       <p className="mt-2 text-sm font-medium text-green-600">
