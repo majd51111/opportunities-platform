@@ -366,8 +366,12 @@ export default function OpportunityDetailsPage() {
               rel="noopener noreferrer"
               onClick={async (event) => {
                 event.preventDefault();
-                if (await recordOpportunityStart(startUrl)) {
-                  window.open(startUrl, "_blank", "noopener,noreferrer");
+                const newWindow = window.open("about:blank", "_blank");
+                await recordOpportunityStart(startUrl);
+                if (newWindow) {
+                  newWindow.location.href = startUrl;
+                } else {
+                  window.location.href = startUrl;
                 }
               }}
               className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"

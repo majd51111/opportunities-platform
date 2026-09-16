@@ -282,8 +282,12 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                       onClick={async (event) => {
                         event.preventDefault();
                         if (!await requireLogin()) return;
-                        if (await recordOpportunityStart(opportunity.id, startUrl)) {
-                          window.open(startUrl, "_blank", "noopener,noreferrer");
+                        const newWindow = window.open("about:blank", "_blank");
+                        await recordOpportunityStart(opportunity.id, startUrl);
+                        if (newWindow) {
+                          newWindow.location.href = startUrl;
+                        } else {
+                          window.location.href = startUrl;
                         }
                       }}
                       className="inline-flex min-h-10 items-center justify-center rounded-lg bg-[#2563eb] px-4 py-2 text-sm font-medium text-white"
