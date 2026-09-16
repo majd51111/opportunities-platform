@@ -24,6 +24,7 @@ export const routes = {
     support: "/admin/support",
     supportRequests: "/admin/support-requests",
     reports: "/admin/reports",
+    analytics: "/admin/analytics",
   },
   api: {
     auth: "/api/auth",

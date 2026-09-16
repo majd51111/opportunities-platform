@@ -138,19 +138,25 @@ export default function OpportunityDetailsPage() {
     checkFavorite();
   }, [opportunity]);
 
-  async function recordOpportunityStart() {
+  async function recordOpportunityStart(url: string): Promise<boolean> {
     const supabase = getSupabaseBrowserClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user || !opportunity) return;
+    if (!user || !opportunity) return false;
 
-    await supabase.from("opportunity_events").insert({
+    const { error } = await supabase.from("opportunity_events").insert({
       user_id: user.id,
       opportunity_id: opportunity.id,
       event_type: "started",
+      metadata: { url },
     });
+    if (error) {
+      console.error("Failed to record opportunity click", error);
+      return false;
+    }
+    return true;
   }
 
   if (loading) {
@@ -358,8 +364,11 @@ export default function OpportunityDetailsPage() {
               href={startUrl}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => {
-                void recordOpportunityStart();
+              onClick={async (event) => {
+                event.preventDefault();
+                if (await recordOpportunityStart(startUrl)) {
+                  window.open(startUrl, "_blank", "noopener,noreferrer");
+                }
               }}
               className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >

@@ -16,14 +16,14 @@ export default function AdminLayout({
 }>) {
   const { t, dir, language } = useLanguage();
   const adminLabels = {
-    ar: { support: "فريق الدعم", requests: "طلبات الدعم", brand: "بوابة الفرص" },
-    en: { support: "Support team", requests: "Support requests", brand: "Opportunity Gateway" },
-    es: { support: "Equipo de soporte", requests: "Solicitudes de soporte", brand: "Portal de Oportunidades" },
-    fr: { support: "Équipe support", requests: "Demandes de support", brand: "Portail des opportunités" },
-    de: { support: "Support-Team", requests: "Supportanfragen", brand: "Chancenportal" },
-    pt: { support: "Equipe de suporte", requests: "Solicitações de suporte", brand: "Portal de Oportunidades" },
-    ja: { support: "サポートチーム", requests: "サポート依頼", brand: "機会のポータル" },
-    zh: { support: "支持团队", requests: "支持请求", brand: "机会门户" },
+    ar: { support: "فريق الدعم", requests: "طلبات الدعم", analytics: "إحصاءات النقرات", brand: "بوابة الفرص" },
+    en: { support: "Support team", requests: "Support requests", analytics: "Click analytics", brand: "Opportunity Gateway" },
+    es: { support: "Equipo de soporte", requests: "Solicitudes de soporte", analytics: "Analíticas de clics", brand: "Portal de Oportunidades" },
+    fr: { support: "Équipe support", requests: "Demandes de support", analytics: "Analyses des clics", brand: "Portail des opportunités" },
+    de: { support: "Support-Team", requests: "Supportanfragen", analytics: "Klickstatistiken", brand: "Chancenportal" },
+    pt: { support: "Equipe de suporte", requests: "Solicitações de suporte", analytics: "Análise de cliques", brand: "Portal de Oportunidades" },
+    ja: { support: "サポートチーム", requests: "サポート依頼", analytics: "クリック分析", brand: "機会のポータル" },
+    zh: { support: "支持团队", requests: "支持请求", analytics: "点击分析", brand: "机会门户" },
   }[language];
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -51,7 +51,7 @@ export default function AdminLayout({
   }, [router]);
 
   const adminNav = [
-    ...(role === "admin" ? [{ href: routes.admin.dashboard, label: t.common.overview }] : []),
+    ...(role === "admin" ? [{ href: routes.admin.dashboard, label: t.common.overview }, { href: routes.admin.analytics, label: adminLabels.analytics }] : []),
     ...(role === "admin" || permissions.canReviewOpportunities ? [{ href: routes.admin.opportunities, label: t.common.opportunities }] : []),
     ...(role === "admin" ? [{ href: routes.admin.users, label: t.common.users }, { href: routes.admin.support, label: adminLabels.support }] : []),
     ...(role === "admin" || permissions.canManageSupportRequests ? [{ href: routes.admin.supportRequests, label: adminLabels.requests }] : []),
