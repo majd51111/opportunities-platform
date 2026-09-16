@@ -20,6 +20,7 @@ export {
   localizeDevice,
   localizePaymentMethod,
   localizeVerification,
+  isVerifiedOpportunity,
 } from "./opportunity";
 export type { ReportSummary, ReportType } from "./report";
 export type { SearchParams, SearchResult } from "./search";

@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useLanguage } from "@/providers/app-providers";
 import type { LanguageCode } from "@/languages";
 import type { Opportunity } from "@/types";
-import { getLocalizedText, getOpportunityStartUrl, joinLocalizedOpportunityList, localizeCountry, localizePaymentMethod, localizeRequirement, normalizeOpportunityCategory, localizeDevice, localizeVerification } from "@/types";
+import { getLocalizedText, getOpportunityStartUrl, joinLocalizedOpportunityList, localizeCountry, localizePaymentMethod, localizeRequirement, normalizeOpportunityCategory, localizeDevice, localizeVerification, isVerifiedOpportunity } from "@/types";
 
 export default function OpportunityDetailsPage() {
   const { t, dir, language } = useLanguage();
@@ -191,6 +191,9 @@ export default function OpportunityDetailsPage() {
   const deviceList = localizeDevice(opportunity.devices, language) ?? "";
   const countryList = joinLocalizedOpportunityList(opportunity.countries, language, localizeCountry);
   const paymentList = joinLocalizedOpportunityList(opportunity.payment_methods, language, localizePaymentMethod);
+  const paymentMethods = paymentList
+    ? paymentList.split(language === "ar" ? "، " : ", ").filter(Boolean)
+    : [];
   const localizedEarnings = getLocalizedText(opportunity.earnings_text, language, "en") ?? opportunity.earnings_text;
   const requirementsList = joinLocalizedOpportunityList(opportunity.requirements, language, localizeRequirement);
   const categoryName = category ? getLocalizedText(category.name, language, "en") ?? category.name : "";
@@ -339,7 +342,16 @@ export default function OpportunityDetailsPage() {
         {paymentList && (
           <div className="mt-6">
             <h2 className="text-lg font-semibold">{t.detailPage.paymentMethods}</h2>
-            <p className="mt-2 text-zinc-600">{paymentList}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {paymentMethods.map((paymentMethod) => (
+                <span
+                  key={paymentMethod}
+                  className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700"
+                >
+                  {paymentMethod}
+                </span>
+              ))}
+            </div>
           </div>
         )}
 
@@ -353,7 +365,7 @@ export default function OpportunityDetailsPage() {
           )}
 
         {opportunity.verification_status && (
-          <p className="mt-8 text-sm text-zinc-500">
+          <p className={`mt-8 inline-flex rounded-full px-3 py-1 text-sm ${isVerifiedOpportunity(opportunity.verification_status) ? "bg-green-100 font-semibold text-green-700" : "text-zinc-500"}`}>
             {t.detailPage.verification}: {localizeVerification(opportunity.verification_status, language) ?? opportunity.verification_status}
           </p>
         )}

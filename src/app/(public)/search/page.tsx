@@ -7,7 +7,7 @@ import { countriesByLanguage } from "@/lib/countries";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useLanguage } from "@/providers/app-providers";
 import type { Opportunity } from "@/types";
-import { getLocalizedText, joinLocalizedList, normalizeOpportunityCategory, localizeCategory, localizeDevice } from "@/types";
+import { getLocalizedText, joinLocalizedList, normalizeOpportunityCategory, localizeCategory, localizeDevice, isVerifiedOpportunity } from "@/types";
 
 export default function SearchPage() {
   const { t, dir, language } = useLanguage();
@@ -179,7 +179,7 @@ useEffect(() => {
                     {category && (
                       <p className="mt-1 text-sm text-zinc-500">{localizeCategory(category.name, language) ?? category.name}</p>
                     )}
-                    {opportunity.verification_status === "verified" && (
+                    {isVerifiedOpportunity(opportunity.verification_status) && (
                       <p className="mt-2 text-sm font-medium text-green-600">
                         {t.searchPage.verified}
                       </p>

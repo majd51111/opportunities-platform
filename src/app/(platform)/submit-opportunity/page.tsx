@@ -52,18 +52,20 @@ type SuggestionInputProps = {
 
 function SuggestionInput({ value, options, placeholder, listLabel, onChange }: SuggestionInputProps) {
   const [open, setOpen] = useState(false);
+  const [selectedValues, setSelectedValues] = useState<string[]>([]);
+  const [inputValue, setInputValue] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
-  const displayValue = value
-    .split(",")
-    .map((item) => {
-      const option = options.find((candidate) => candidate.value === item.trim());
-      return option?.label ?? item.trim();
-    })
-    .join(", ");
-  const currentPart = displayValue.split(",").pop()?.trim().toLowerCase() ?? "";
+  const currentPart = inputValue.trim().toLowerCase();
   const filteredOptions = options.filter((option) =>
     `${option.label} ${option.value}`.toLowerCase().includes(currentPart),
   );
+
+  useEffect(() => {
+    if (!value) {
+      setSelectedValues([]);
+      setInputValue("");
+    }
+  }, [value]);
 
   useEffect(() => {
     function handleOutsideClick(event: MouseEvent) {
@@ -74,44 +76,66 @@ function SuggestionInput({ value, options, placeholder, listLabel, onChange }: S
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
+  function updateValues(values: string[]) {
+    const uniqueValues = values.filter((item, index) => item && values.indexOf(item) === index);
+    setSelectedValues(uniqueValues);
+    onChange([...uniqueValues, inputValue.trim()].filter(Boolean).join(", "));
+  }
+
   function chooseOption(option: string) {
-    const values = value.split(",").map((item) => item.trim()).filter(Boolean);
-    if (values.length === 0) {
-      values.push(option);
-    } else {
-      values[values.length - 1] = option;
-    }
-    onChange(values.join(", "));
+    const nextValues = [...selectedValues, option].filter((item, index, values) => values.indexOf(item) === index);
+    setSelectedValues(nextValues);
+    onChange(nextValues.join(", "));
+    setInputValue("");
     setOpen(false);
+  }
+
+  function removeValue(valueToRemove: string) {
+    updateValues(selectedValues.filter((item) => item !== valueToRemove));
   }
 
   return (
     <div ref={containerRef} className="relative">
-      <div className="flex h-11 overflow-hidden rounded-lg border border-zinc-300 bg-white transition focus-within:border-[#2563eb] focus-within:ring-2 focus-within:ring-blue-100">
+      <div className="flex min-h-11 flex-wrap items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-2 py-1.5 transition focus-within:border-[#2563eb] focus-within:ring-2 focus-within:ring-blue-100">
+        {selectedValues.map((selectedValue) => {
+          const option = options.find((candidate) => candidate.value === selectedValue);
+          return (
+            <span key={selectedValue} className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+              {option?.label ?? selectedValue}
+              <button
+                type="button"
+                aria-label={`${listLabel}: ${selectedValue}`}
+                onClick={() => removeValue(selectedValue)}
+                className="text-blue-500 hover:text-blue-800"
+              >
+                ×
+              </button>
+            </span>
+          );
+        })}
         <input
-          value={displayValue}
+          value={inputValue}
           onChange={(event) => {
-            const normalizedValue = event.target.value
-              .split(",")
-              .map((item) => {
-                const option = options.find((candidate) => candidate.label.toLowerCase() === item.trim().toLowerCase());
-                return option?.value ?? item.trim();
-              })
-              .join(", ");
-            onChange(normalizedValue);
+            const parts = event.target.value.split(",");
+            const typedValues = parts.slice(0, -1).map((item) => item.trim()).filter(Boolean);
+            const nextInputValue = parts.at(-1)?.trim() ?? "";
+            const nextSelectedValues = [...selectedValues, ...typedValues];
+            setSelectedValues(nextSelectedValues);
+            setInputValue(nextInputValue);
+            onChange([...nextSelectedValues, nextInputValue].filter(Boolean).join(", "));
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
           aria-label={listLabel}
-          className="min-w-0 flex-1 border-0 px-3 py-2 font-normal outline-none"
+          className="min-w-[8rem] flex-1 border-0 px-1 py-1 font-normal outline-none"
         />
         <button
           type="button"
           aria-label={listLabel}
           aria-expanded={open}
           onClick={() => setOpen((current) => !current)}
-          className="flex w-11 shrink-0 items-center justify-center border-l border-zinc-200 bg-zinc-50 text-zinc-500 transition hover:bg-blue-50 hover:text-[#2563eb]"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-zinc-50 text-zinc-500 transition hover:bg-blue-50 hover:text-[#2563eb]"
         >
           <span className={`h-2.5 w-2.5 rotate-45 border-b-2 border-r-2 border-current transition-transform ${open ? "-translate-y-0.5 rotate-[225deg]" : "-translate-y-0.5"}`} />
         </button>

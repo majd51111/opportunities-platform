@@ -421,7 +421,7 @@ export function localizeDevice(
 
 const verificationTranslations: Record<string, Record<LanguageCode, string>> = {
   verified: {
-    ar: "موثّق",
+    ar: "موثق",
     en: "Verified",
     es: "Verificado",
     fr: "Vérifié",
@@ -461,6 +461,15 @@ export function localizeVerification(
 
   const key = String(text).trim().toLowerCase();
   return verificationTranslations[key]?.[language] ?? text;
+}
+
+export function isVerifiedOpportunity(raw: unknown): boolean {
+  const text = getLocalizedText(raw, "en", "en");
+  if (!text) return false;
+
+  return ["verified", "موثق", "موثّق"].includes(
+    text.trim().toLowerCase().replace(/\s+/g, ""),
+  );
 }
 
 export type Opportunity = {

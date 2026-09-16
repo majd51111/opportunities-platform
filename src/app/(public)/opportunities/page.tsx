@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useLanguage } from "@/providers/app-providers";
 import type { Opportunity } from "@/types";
 import type { LanguageCode } from "@/languages";
-import { getLocalizedText, normalizeOpportunityCategory, localizeDevice, localizeVerification, getOpportunityStartUrl } from "@/types";
+import { getLocalizedText, normalizeOpportunityCategory, localizeDevice, localizeVerification, getOpportunityStartUrl, isVerifiedOpportunity } from "@/types";
 
 const newBadgeLabels: Record<LanguageCode, string> = {
   ar: "جديد",
@@ -321,7 +321,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                 )}
 
                 {localizedVerification && (
-                  <p className="mt-2 text-sm text-zinc-500">
+                  <p className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm ${isVerifiedOpportunity(opportunity.verification_status) ? "bg-green-100 font-semibold text-green-700" : "text-zinc-500"}`}>
                     {t.opportunitiesPage.verification}: {localizedVerification}
                   </p>
                 )}
