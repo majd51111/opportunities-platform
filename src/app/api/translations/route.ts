@@ -19,6 +19,27 @@ type TranslationInput = {
 
 type TranslationOutput = Record<SupportedLanguage, TranslationInput>;
 
+const translationResponseSchema = {
+  type: "OBJECT",
+  properties: Object.fromEntries(
+    supportedLanguages.map((language) => [language, {
+      type: "OBJECT",
+      properties: {
+        title: { type: "STRING" },
+        shortDescription: { type: "STRING" },
+        description: { type: "STRING" },
+        earningsText: { type: "STRING", nullable: true },
+        countries: { type: "ARRAY", items: { type: "STRING" } },
+        devices: { type: "ARRAY", items: { type: "STRING" } },
+        paymentMethods: { type: "ARRAY", items: { type: "STRING" } },
+        requirements: { type: "ARRAY", items: { type: "STRING" } },
+      },
+      required: ["title", "shortDescription", "description", "earningsText", "countries", "devices", "paymentMethods", "requirements"],
+    }]),
+  ),
+  required: [...supportedLanguages],
+} as const;
+
 function isTranslationOutput(value: unknown): value is TranslationOutput {
   if (!value || typeof value !== "object") return false;
   return supportedLanguages.every((language) => {
@@ -124,6 +145,7 @@ export async function POST(request: Request) {
       generationConfig: {
         temperature: 0.2,
         responseMimeType: "application/json",
+        responseSchema: translationResponseSchema,
         maxOutputTokens: 3000,
       },
       contents: [
