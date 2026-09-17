@@ -154,7 +154,7 @@ function SuggestionInput({ value, options, placeholder, listLabel, onChange }: S
             type="button"
             aria-label={`${listLabel}: add custom value`}
             onClick={addTypedValue}
-            className="inline-flex h-8 shrink-0 items-center rounded-lg bg-blue-50 px-2.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
+            className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-blue-200 bg-blue-100 px-4 text-xl font-bold leading-none text-blue-700 shadow-sm transition hover:bg-blue-200"
           >
             +
           </button>
@@ -330,7 +330,6 @@ export default function SubmitOpportunityPage() {
         <p className="mt-2 text-zinc-500">{copy.description}</p>
         <form onSubmit={handleSubmit} className="mt-8 grid gap-5">
           <label className="grid gap-2 text-sm font-medium">{copy.name}<input required value={form.title} onChange={(event) => updateField("title", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
-          <label className="grid gap-2 text-sm font-medium">{copy.shortDescription}<input required value={form.shortDescription} onChange={(event) => updateField("shortDescription", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
           <label className="grid gap-2 text-sm font-medium">{copy.details}<textarea rows={5} value={form.description} onChange={(event) => updateField("description", event.target.value)} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
           <label className="grid gap-2 text-sm font-medium">{copy.link}<input required dir="ltr" type="url" value={form.directUrl} onChange={(event) => updateField("directUrl", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal text-left" /></label>
           <div className="grid gap-5 sm:grid-cols-2">
