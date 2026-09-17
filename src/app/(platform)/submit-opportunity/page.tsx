@@ -58,6 +58,7 @@ function SuggestionInput({ value, options, placeholder, listLabel, onChange }: S
   const lastEmittedValue = useRef(value);
   const currentPart = inputValue.trim().toLowerCase();
   const filteredOptions = options.filter((option) =>
+    !selectedValues.includes(option.value) &&
     `${option.label} ${option.value}`.toLowerCase().includes(currentPart),
   );
 
@@ -99,17 +100,17 @@ function SuggestionInput({ value, options, placeholder, listLabel, onChange }: S
 
   return (
     <div ref={containerRef} className="relative">
-      <div className="flex min-h-11 flex-wrap items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-2 py-1.5 transition focus-within:border-[#2563eb] focus-within:ring-2 focus-within:ring-blue-100">
+      <div className="flex min-h-11 flex-wrap items-center gap-1.5 rounded-xl border border-zinc-300 bg-white px-2.5 py-1.5 transition focus-within:border-[#2563eb] focus-within:ring-2 focus-within:ring-blue-100">
         {selectedValues.map((selectedValue) => {
           const option = options.find((candidate) => candidate.value === selectedValue);
           return (
-            <span key={selectedValue} className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+            <span key={selectedValue} className="inline-flex max-w-full items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
               {option?.label ?? selectedValue}
               <button
                 type="button"
                 aria-label={`${listLabel}: ${selectedValue}`}
                 onClick={() => removeValue(selectedValue)}
-                className="text-blue-500 hover:text-blue-800"
+                className="rounded-full px-0.5 text-blue-500 transition hover:bg-blue-100 hover:text-blue-800"
               >
                 ×
               </button>
@@ -143,7 +144,7 @@ function SuggestionInput({ value, options, placeholder, listLabel, onChange }: S
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
           aria-label={listLabel}
-          className="min-w-[8rem] flex-1 border-0 px-1 py-1 font-normal outline-none"
+          className="min-w-[8rem] flex-1 border-0 bg-transparent px-1 py-1 text-sm font-normal outline-none placeholder:text-zinc-400"
         />
         <button
           type="button"
@@ -156,14 +157,14 @@ function SuggestionInput({ value, options, placeholder, listLabel, onChange }: S
         </button>
       </div>
       {open && filteredOptions.length > 0 && (
-        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-lg border border-zinc-200 bg-white p-1 shadow-lg">
+        <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-44 overflow-y-auto rounded-xl border border-zinc-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5">
           {filteredOptions.map((option) => (
             <button
               key={option.value}
               type="button"
-              onMouseDown={(event) => event.preventDefault()}
+              onPointerDown={(event) => event.preventDefault()}
               onClick={() => chooseOption(option.value)}
-              className="block w-full rounded-md px-3 py-2 text-left text-sm text-zinc-700 transition hover:bg-blue-50 hover:text-[#1d4ed8]"
+              className="flex min-h-10 w-full touch-manipulation items-center rounded-lg px-3 py-2 text-left text-sm text-zinc-700 transition hover:bg-blue-50 hover:text-[#1d4ed8] focus-visible:bg-blue-50 focus-visible:outline-none"
             >
               {option.label}
             </button>
@@ -315,7 +316,7 @@ export default function SubmitOpportunityPage() {
         <form onSubmit={handleSubmit} className="mt-8 grid gap-5">
           <label className="grid gap-2 text-sm font-medium">{copy.name}<input required value={form.title} onChange={(event) => updateField("title", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
           <label className="grid gap-2 text-sm font-medium">{copy.shortDescription}<input required value={form.shortDescription} onChange={(event) => updateField("shortDescription", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
-          <label className="grid gap-2 text-sm font-medium">{copy.details}<textarea required rows={5} value={form.description} onChange={(event) => updateField("description", event.target.value)} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
+          <label className="grid gap-2 text-sm font-medium">{copy.details}<textarea rows={5} value={form.description} onChange={(event) => updateField("description", event.target.value)} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
           <label className="grid gap-2 text-sm font-medium">{copy.link}<input required dir="ltr" type="url" value={form.directUrl} onChange={(event) => updateField("directUrl", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal text-left" /></label>
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="grid gap-2 text-sm font-medium">{copy.earnings}<input value={form.earnings} onChange={(event) => updateField("earnings", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
