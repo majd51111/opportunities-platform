@@ -194,9 +194,6 @@ setOpportunities(localizedOpportunities);
           {opportunities.map((opportunity) => {
             const category = normalizeOpportunityCategory(opportunity.category, languageKey);
             const title = getLocalizedText(opportunity.title, languageKey, "en") ?? "Opportunity";
-            const summary =
-              getLocalizedText(opportunity.short_description ?? opportunity.description, languageKey, "en") ??
-              t.opportunitiesPage.noDescription;
 const deviceList =
   (localizeDevice(opportunity.devices, languageKey) ?? "");
 
@@ -296,7 +293,6 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                   </button>
                 </div>
 
-                <p className="mt-2 text-zinc-600">{summary}</p>
                 {localizedEarnings && (
                   <p className="mt-4 font-medium">
                     {t.opportunitiesPage.earnings}: {localizedEarnings}

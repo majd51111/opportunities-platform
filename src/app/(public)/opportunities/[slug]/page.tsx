@@ -188,9 +188,6 @@ export default function OpportunityDetailsPage() {
   const category = normalizeOpportunityCategory(opportunity.category, language);
   const startUrl = getOpportunityStartUrl(opportunity);
   const title = getLocalizedText(opportunity.title, language, "en") ?? "Opportunity";
-  const shortDescription =
-    getLocalizedText(opportunity.short_description ?? opportunity.description, language, "en") ??
-    "";
   const deviceList = localizeDevice(opportunity.devices, language) ?? "";
   const countryList = joinLocalizedOpportunityList(opportunity.countries, language, localizeCountry);
   const paymentList = joinLocalizedOpportunityList(opportunity.payment_methods, language, localizePaymentMethod);
@@ -303,10 +300,6 @@ export default function OpportunityDetailsPage() {
           <p className="mt-2 text-sm text-zinc-500">
             {t.detailPage.category}: {categoryName}
           </p>
-        )}
-
-        {shortDescription && (
-          <p className="mt-6 text-lg text-zinc-600">{shortDescription}</p>
         )}
 
         {opportunity.description && (
