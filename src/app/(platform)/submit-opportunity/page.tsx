@@ -81,7 +81,7 @@ function SuggestionInput({ value, options, placeholder, listLabel, onChange }: S
 
   function emitValues(values: string[], pendingValue = "") {
     const uniqueValues = values.map((item) => item.trim()).filter((item, index, items) => item && items.indexOf(item) === index);
-    const nextValue = [...uniqueValues, pendingValue.trim()].filter(Boolean).join(", ");
+    const nextValue = [...uniqueValues, pendingValue].filter((item) => item.trim()).join(", ");
     setSelectedValues(uniqueValues);
     setInputValue(pendingValue);
     lastEmittedValue.current = nextValue;
@@ -133,7 +133,7 @@ function SuggestionInput({ value, options, placeholder, listLabel, onChange }: S
             onChange={(event) => {
               const parts = event.target.value.split(",");
               const typedValues = parts.slice(0, -1).map((item) => item.trim()).filter(Boolean);
-              const nextInputValue = parts.at(-1)?.trim() ?? "";
+              const nextInputValue = parts.at(-1) ?? "";
               emitValues([...selectedValues, ...typedValues], nextInputValue);
               setOpen(true);
             }}
