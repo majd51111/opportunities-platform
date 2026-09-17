@@ -107,7 +107,7 @@ export async function POST(request: Request) {
   const configuredModel = process.env.GEMINI_TRANSLATION_MODEL?.trim();
   const model = configuredModel && /^gemini-[a-z0-9.-]+$/i.test(configuredModel)
     ? configuredModel
-    : "gemini-2.5-flash";
+    : "gemini-3-flash-preview";
   const providerController = new AbortController();
   const providerTimeout = setTimeout(() => providerController.abort(), TRANSLATION_PROVIDER_TIMEOUT_MS);
   let response: Response;
