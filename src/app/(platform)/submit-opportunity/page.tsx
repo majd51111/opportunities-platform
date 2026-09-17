@@ -98,63 +98,76 @@ function SuggestionInput({ value, options, placeholder, listLabel, onChange }: S
     emitValues(selectedValues.filter((item) => item !== valueToRemove), inputValue);
   }
 
+  function addTypedValue() {
+    if (!inputValue.trim()) return;
+    emitValues([...selectedValues, inputValue]);
+    setOpen(false);
+  }
+
   return (
     <div ref={containerRef} className="relative">
-      <div className="flex min-h-11 flex-wrap items-center gap-1.5 rounded-xl border border-zinc-300 bg-white px-2.5 py-1.5 transition focus-within:border-[#2563eb] focus-within:ring-2 focus-within:ring-blue-100">
-        {selectedValues.map((selectedValue) => {
-          const option = options.find((candidate) => candidate.value === selectedValue);
-          return (
-            <span key={selectedValue} className="inline-flex max-w-full items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
-              {option?.label ?? selectedValue}
-              <button
-                type="button"
-                aria-label={`${listLabel}: ${selectedValue}`}
-                onClick={() => removeValue(selectedValue)}
-                className="rounded-full px-0.5 text-blue-500 transition hover:bg-blue-100 hover:text-blue-800"
-              >
-                ×
-              </button>
-            </span>
-          );
-        })}
-        <input
-          value={inputValue}
-          onChange={(event) => {
-            const parts = event.target.value.split(",");
-            const typedValues = parts.slice(0, -1).map((item) => item.trim()).filter(Boolean);
-            const nextInputValue = parts.at(-1)?.trim() ?? "";
-            emitValues([...selectedValues, ...typedValues], nextInputValue);
-            setOpen(true);
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && inputValue.trim()) {
-              event.preventDefault();
-              const matchingOption = options.find((option) => option.value.toLowerCase() === inputValue.trim().toLowerCase());
-              if (matchingOption) {
-                chooseOption(matchingOption.value);
-              } else {
-                emitValues([...selectedValues, inputValue]);
+      <div className="rounded-xl border border-zinc-300 bg-white px-2.5 py-2 transition focus-within:border-[#2563eb] focus-within:ring-2 focus-within:ring-blue-100">
+        {selectedValues.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {selectedValues.map((selectedValue) => {
+              const option = options.find((candidate) => candidate.value === selectedValue);
+              return (
+                <span key={selectedValue} className="inline-flex max-w-full items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+                  {option?.label ?? selectedValue}
+                  <button
+                    type="button"
+                    aria-label={`${listLabel}: ${selectedValue}`}
+                    onClick={() => removeValue(selectedValue)}
+                    className="rounded-full px-0.5 text-blue-500 transition hover:bg-blue-100 hover:text-blue-800"
+                  >
+                    ×
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+        )}
+        <div className="mt-1 flex items-center gap-1.5">
+          <input
+            value={inputValue}
+            onChange={(event) => {
+              const parts = event.target.value.split(",");
+              const typedValues = parts.slice(0, -1).map((item) => item.trim()).filter(Boolean);
+              const nextInputValue = parts.at(-1)?.trim() ?? "";
+              emitValues([...selectedValues, ...typedValues], nextInputValue);
+              setOpen(true);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && inputValue.trim()) {
+                event.preventDefault();
+                const matchingOption = options.find((option) => option.value.toLowerCase() === inputValue.trim().toLowerCase());
+                if (matchingOption) chooseOption(matchingOption.value);
+                else addTypedValue();
               }
-              setOpen(false);
-            }
-          }}
-          onBlur={() => {
-            if (inputValue.trim()) emitValues([...selectedValues, inputValue]);
-          }}
-          onFocus={() => setOpen(true)}
-          placeholder={placeholder}
-          aria-label={listLabel}
-          className="min-w-[8rem] flex-1 border-0 bg-transparent px-1 py-1 text-sm font-normal outline-none placeholder:text-zinc-400"
-        />
-        <button
-          type="button"
-          aria-label={listLabel}
-          aria-expanded={open}
-          onClick={() => setOpen((current) => !current)}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-zinc-50 text-zinc-500 transition hover:bg-blue-50 hover:text-[#2563eb]"
-        >
-          <span className={`h-2.5 w-2.5 rotate-45 border-b-2 border-r-2 border-current transition-transform ${open ? "-translate-y-0.5 rotate-[225deg]" : "-translate-y-0.5"}`} />
-        </button>
+            }}
+            onFocus={() => setOpen(true)}
+            placeholder={placeholder}
+            aria-label={listLabel}
+            className="min-w-0 flex-1 border-0 bg-transparent px-1 py-1 text-sm font-normal outline-none placeholder:text-zinc-400"
+          />
+          <button
+            type="button"
+            aria-label={`${listLabel}: add custom value`}
+            onClick={addTypedValue}
+            className="inline-flex h-8 shrink-0 items-center rounded-lg bg-blue-50 px-2.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            aria-label={listLabel}
+            aria-expanded={open}
+            onClick={() => setOpen((current) => !current)}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-50 text-zinc-500 transition hover:bg-blue-50 hover:text-[#2563eb]"
+          >
+            <span className={`h-2.5 w-2.5 rotate-45 border-b-2 border-r-2 border-current transition-transform ${open ? "-translate-y-0.5 rotate-[225deg]" : "-translate-y-0.5"}`} />
+          </button>
+        </div>
       </div>
       {open && filteredOptions.length > 0 && (
         <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-44 overflow-y-auto rounded-xl border border-zinc-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5">
@@ -162,8 +175,10 @@ function SuggestionInput({ value, options, placeholder, listLabel, onChange }: S
             <button
               key={option.value}
               type="button"
-              onPointerDown={(event) => event.preventDefault()}
-              onClick={() => chooseOption(option.value)}
+              onPointerDown={(event) => {
+                event.preventDefault();
+                chooseOption(option.value);
+              }}
               className="flex min-h-10 w-full touch-manipulation items-center rounded-lg px-3 py-2 text-left text-sm text-zinc-700 transition hover:bg-blue-50 hover:text-[#1d4ed8] focus-visible:bg-blue-50 focus-visible:outline-none"
             >
               {option.label}
