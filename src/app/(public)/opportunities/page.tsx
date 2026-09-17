@@ -294,20 +294,20 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                 </div>
 
                 {localizedEarnings && (
-                  <p className="mt-4 font-medium">
-                    {t.opportunitiesPage.earnings}: {localizedEarnings}
+                  <p className="mt-4 text-sm font-medium text-zinc-700">
+                    {t.opportunitiesPage.earnings}: <span className="text-blue-700">{localizedEarnings}</span>
                   </p>
                 )}
 
                 {deviceList && (
-                  <p className="mt-2 text-sm text-zinc-500">
-                    {t.opportunitiesPage.devices}: {deviceList}
+                  <p className="mt-2 text-sm font-medium text-zinc-700">
+                    {t.opportunitiesPage.devices}: <span className="text-blue-700">{deviceList}</span>
                   </p>
                 )}
 
                 {localizedVerification && (
-                  <p className="mt-2 text-sm text-zinc-500">
-                    {t.opportunitiesPage.verification}: {localizedVerification}
+                  <p className="mt-2 text-sm font-medium text-zinc-700">
+                    {t.opportunitiesPage.verification}: <span className="text-green-600">{localizedVerification}</span>
                   </p>
                 )}
 
