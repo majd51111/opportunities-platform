@@ -52,18 +52,20 @@ type SuggestionInputProps = {
 
 function SuggestionInput({ value, options, placeholder, listLabel, onChange }: SuggestionInputProps) {
   const [open, setOpen] = useState(false);
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
+  const [selectedValues, setSelectedValues] = useState<string[]>(() => value.split(",").map((item) => item.trim()).filter(Boolean));
   const [inputValue, setInputValue] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastEmittedValue = useRef(value);
   const currentPart = inputValue.trim().toLowerCase();
   const filteredOptions = options.filter((option) =>
     `${option.label} ${option.value}`.toLowerCase().includes(currentPart),
   );
 
   useEffect(() => {
-    if (!value) {
-      setSelectedValues([]);
+    if (value !== lastEmittedValue.current) {
+      setSelectedValues(value.split(",").map((item) => item.trim()).filter(Boolean));
       setInputValue("");
+      lastEmittedValue.current = value;
     }
   }, [value]);
 
@@ -76,22 +78,23 @@ function SuggestionInput({ value, options, placeholder, listLabel, onChange }: S
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
-  function updateValues(values: string[]) {
-    const uniqueValues = values.filter((item, index) => item && values.indexOf(item) === index);
+  function emitValues(values: string[], pendingValue = "") {
+    const uniqueValues = values.map((item) => item.trim()).filter((item, index, items) => item && items.indexOf(item) === index);
+    const nextValue = [...uniqueValues, pendingValue.trim()].filter(Boolean).join(", ");
     setSelectedValues(uniqueValues);
-    onChange([...uniqueValues, inputValue.trim()].filter(Boolean).join(", "));
+    setInputValue(pendingValue);
+    lastEmittedValue.current = nextValue;
+    onChange(nextValue);
   }
 
   function chooseOption(option: string) {
     const nextValues = [...selectedValues, option].filter((item, index, values) => values.indexOf(item) === index);
-    setSelectedValues(nextValues);
-    onChange(nextValues.join(", "));
-    setInputValue("");
+    emitValues(nextValues);
     setOpen(false);
   }
 
   function removeValue(valueToRemove: string) {
-    updateValues(selectedValues.filter((item) => item !== valueToRemove));
+    emitValues(selectedValues.filter((item) => item !== valueToRemove), inputValue);
   }
 
   return (
@@ -119,11 +122,23 @@ function SuggestionInput({ value, options, placeholder, listLabel, onChange }: S
             const parts = event.target.value.split(",");
             const typedValues = parts.slice(0, -1).map((item) => item.trim()).filter(Boolean);
             const nextInputValue = parts.at(-1)?.trim() ?? "";
-            const nextSelectedValues = [...selectedValues, ...typedValues];
-            setSelectedValues(nextSelectedValues);
-            setInputValue(nextInputValue);
-            onChange([...nextSelectedValues, nextInputValue].filter(Boolean).join(", "));
+            emitValues([...selectedValues, ...typedValues], nextInputValue);
             setOpen(true);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && inputValue.trim()) {
+              event.preventDefault();
+              const matchingOption = options.find((option) => option.value.toLowerCase() === inputValue.trim().toLowerCase());
+              if (matchingOption) {
+                chooseOption(matchingOption.value);
+              } else {
+                emitValues([...selectedValues, inputValue]);
+              }
+              setOpen(false);
+            }
+          }}
+          onBlur={() => {
+            if (inputValue.trim()) emitValues([...selectedValues, inputValue]);
           }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder}

@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useLanguage } from "@/providers/app-providers";
 import type { Opportunity } from "@/types";
 import type { LanguageCode } from "@/languages";
-import { getLocalizedText, normalizeOpportunityCategory, localizeDevice, localizeVerification, getOpportunityStartUrl, isVerifiedOpportunity } from "@/types";
+import { getLocalizedText, normalizeOpportunityCategory, localizeDevice, localizeVerification, getOpportunityStartUrl } from "@/types";
 
 const newBadgeLabels: Record<LanguageCode, string> = {
   ar: "جديد",
@@ -124,25 +124,19 @@ setOpportunities(localizedOpportunities);
     loadOpportunities();
   }, [t.opportunitiesPage.loadError, language]);
 
-  async function recordOpportunityStart(opportunityId: string | number, url: string): Promise<boolean> {
+  async function recordOpportunityStart(opportunityId: string | number) {
     const supabase = getSupabaseBrowserClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) return false;
+    if (!user) return;
 
-    const { error } = await supabase.from("opportunity_events").insert({
+    await supabase.from("opportunity_events").insert({
       user_id: user.id,
       opportunity_id: opportunityId,
       event_type: "started",
-      metadata: { url },
     });
-    if (error) {
-      console.error("Failed to record opportunity click", error);
-      return false;
-    }
-    return true;
   }
 
   async function requireLogin(): Promise<boolean> {
@@ -282,13 +276,8 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                       onClick={async (event) => {
                         event.preventDefault();
                         if (!await requireLogin()) return;
-                        const newWindow = window.open("about:blank", "_blank");
-                        await recordOpportunityStart(opportunity.id, startUrl);
-                        if (newWindow) {
-                          newWindow.location.href = startUrl;
-                        } else {
-                          window.location.href = startUrl;
-                        }
+                        void recordOpportunityStart(opportunity.id);
+                        window.open(startUrl, "_blank", "noopener,noreferrer");
                       }}
                       className="inline-flex min-h-10 items-center justify-center rounded-lg bg-[#2563eb] px-4 py-2 text-sm font-medium text-white"
                     >
@@ -321,7 +310,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                 )}
 
                 {localizedVerification && (
-                  <p className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm ${isVerifiedOpportunity(opportunity.verification_status) ? "bg-green-100 font-semibold text-green-700" : "text-zinc-500"}`}>
+                  <p className="mt-2 text-sm text-zinc-500">
                     {t.opportunitiesPage.verification}: {localizedVerification}
                   </p>
                 )}

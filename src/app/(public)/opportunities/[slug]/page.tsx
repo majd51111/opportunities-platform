@@ -94,17 +94,20 @@ export default function OpportunityDetailsPage() {
           translation,
         ]),
       );
-      const localized = translationMap.get(languageKey) ?? translationMap.get("en");
+      const localized = translationMap.get(languageKey);
+      const english = translationMap.get("en");
       setOpportunity({
         ...data,
-        title: localized?.title ?? data.title,
-        short_description: localized?.short_description || localized?.description || data.short_description,
-        description: localized?.description ?? data.description,
-        earnings_text: localized?.earnings_text ?? data.earnings_text,
-        countries: localized?.countries ?? data.countries,
-        devices: localized?.devices ?? data.devices,
-        payment_methods: localized?.payment_methods ?? data.payment_methods,
-        requirements: localized?.requirements ?? data.requirements,
+        title: localized?.title || english?.title || data.title,
+        short_description:
+          localized?.short_description || localized?.description ||
+          english?.short_description || english?.description || data.short_description,
+        description: localized?.description || english?.description || data.description,
+        earnings_text: localized?.earnings_text || english?.earnings_text || data.earnings_text,
+        countries: localized?.countries?.length ? localized.countries : english?.countries?.length ? english.countries : data.countries,
+        devices: localized?.devices?.length ? localized.devices : english?.devices?.length ? english.devices : data.devices,
+        payment_methods: localized?.payment_methods?.length ? localized.payment_methods : english?.payment_methods?.length ? english.payment_methods : data.payment_methods,
+        requirements: localized?.requirements?.length ? localized.requirements : english?.requirements?.length ? english.requirements : data.requirements,
       });
       setLoading(false);
     }
