@@ -339,6 +339,16 @@ const deviceTranslations: Record<string, Record<LanguageCode, string>> = {
     ja: "iPhone",
     zh: "iPhone",
   },
+  tablet: {
+    ar: "جهاز لوحي",
+    en: "Tablet",
+    es: "Tableta",
+    fr: "Tablette",
+    de: "Tablet",
+    pt: "Tablet",
+    ja: "タブレット",
+    zh: "平板电脑",
+  },
 };
 
 const deviceAliases: Record<string, string> = {
@@ -353,6 +363,10 @@ const deviceAliases: Record<string, string> = {
   pc: "computer",
   "ايفون": "iphone",
   "آيفون": "iphone",
+  tablet: "tablet",
+  "جهاز لوحي": "tablet",
+  "جهازلوحي": "tablet",
+  تابلت: "tablet",
 };
 
 const allDevicesTranslations: Record<LanguageCode, string> = {
@@ -405,6 +419,10 @@ export function localizeDevice(
 
     if (normalized === "iphone" || normalized === "ios" || deviceAliases[part.trim().toLowerCase()] === "iphone") {
       return deviceTranslations.iphone[language] ?? deviceTranslations.iphone.en;
+    }
+
+    if (normalized === "tablet" || deviceAliases[part.trim().toLowerCase()] === "tablet") {
+      return deviceTranslations.tablet[language] ?? deviceTranslations.tablet.en;
     }
 
     if (deviceAlias === "all_devices") {
