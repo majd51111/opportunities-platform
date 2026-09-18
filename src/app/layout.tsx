@@ -1,4 +1,5 @@
 import LanguageSync from "@/components/ui/LanguageSync";
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
@@ -37,6 +38,7 @@ export default function RootLayout({
   <LanguageSync />
   {children}
 </AppProviders>
+      <Analytics />
       </body>
     </html>
   );
