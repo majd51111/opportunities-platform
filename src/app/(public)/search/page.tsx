@@ -211,9 +211,6 @@ useEffect(() => {
                     className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm"
                   >
                     <h2 className="text-xl font-semibold">{title}</h2>
-                    {category && (
-                      <p className="mt-1 text-sm text-zinc-600">{t.detailPage.category}: {localizeCategory(category.name, language) ?? category.name}</p>
-                    )}
                     {isVerifiedOpportunity(opportunity.verification_status) && (
                       <p className="mt-2 text-sm font-medium text-green-600">
                         {t.searchPage.verified}
@@ -230,7 +227,12 @@ useEffect(() => {
                       </p>
                     )}
 
-                    {summary && <p className="mt-3 leading-6 text-red-600">{summary}</p>}
+                    {(category || summary) && (
+                      <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm leading-6">
+                        {category && <span className="font-medium text-blue-700">{t.detailPage.category}: {localizeCategory(category.name, language) ?? category.name}</span>}
+                        {summary && <span className="text-red-600">{summary}</span>}
+                      </div>
+                    )}
 
                     {opportunity.earnings_text && (
                       <p className="mt-4 text-green-600">

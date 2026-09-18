@@ -191,16 +191,6 @@ export default function FavoritesPage() {
 
                 <h2 className="text-xl font-semibold">{title}</h2>
 
-                {summary && <p className="mt-3 leading-6 text-red-600">{summary}</p>}
-
-                {category && <p className="mt-3 text-sm font-medium text-zinc-600">{t.detailPage.category}: {getLocalizedText(category.name, language, "en") ?? category.name}</p>}
-
-                {localizedEarnings && (
-                  <p className="mt-2 font-medium">
-                    {t.favoritesPage.earnings}: {localizedEarnings}
-                  </p>
-                )}
-
                 <div className="mt-5 grid grid-cols-2 gap-3">
                   <Link
                     href={`/opportunities/${opportunity.id}`}
@@ -217,6 +207,19 @@ export default function FavoritesPage() {
                     {t.favoritesPage.remove}
                   </button>
                 </div>
+
+                {(category || summary) && (
+                  <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm leading-6">
+                    {category && <span className="font-medium text-blue-700">{t.detailPage.category}: {getLocalizedText(category.name, language, "en") ?? category.name}</span>}
+                    {summary && <span className="text-red-600">{summary}</span>}
+                  </div>
+                )}
+
+                {localizedEarnings && (
+                  <p className="mt-3 font-medium">
+                    {t.favoritesPage.earnings}: {localizedEarnings}
+                  </p>
+                )}
               </article>
             );
           })}

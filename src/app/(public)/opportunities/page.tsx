@@ -270,7 +270,6 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                 )}
 
                 <h2 className="min-h-32 pt-24 text-xl font-semibold leading-7">{title}</h2>
-                {summary && <p className="mt-3 text-sm leading-6 text-red-600">{summary}</p>}
                 <div className="mt-auto flex flex-wrap gap-3 pt-5">
                   {startUrl && (
                     <a
@@ -300,7 +299,12 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                   </button>
                 </div>
 
-                {category && <p className="mt-3 text-sm font-medium text-zinc-600">{t.detailPage.category}: {localizeCategory(category.name, languageKey) ?? category.name}</p>}
+                {(category || summary) && (
+                  <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm leading-6">
+                    {category && <span className="font-medium text-blue-700">{t.detailPage.category}: {localizeCategory(category.name, languageKey) ?? category.name}</span>}
+                    {summary && <span className="text-red-600">{summary}</span>}
+                  </div>
+                )}
 
                 {localizedEarnings && (
                   <p className="mt-2 text-sm font-medium text-zinc-700">
