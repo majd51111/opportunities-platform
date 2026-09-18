@@ -59,7 +59,7 @@ export default function OpportunitiesPage() {
       const { data, error } = await supabase
         .from("opportunities")
         .select(
-          "id, created_at, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id"
+          "id, created_at, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id, category:categories(id, name)"
         )
         .eq("status", "published")
         .order("created_at", { ascending: false });
