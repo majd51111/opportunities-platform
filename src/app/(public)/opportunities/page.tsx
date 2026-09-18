@@ -172,18 +172,24 @@ setOpportunities(localizedOpportunities);
     setOpportunities((current) => current.filter((item) => item.id !== opportunityId));
   }
 
-  function startEditing(opportunity: Opportunity) {
+  async function startEditing(opportunity: Opportunity) {
+    const { data: sourceOpportunity } = await getSupabaseBrowserClient()
+      .from("opportunities")
+      .select("id, title, description, direct_url, source_url, earnings_text, countries, devices, payment_methods, requirements, category_id")
+      .eq("id", opportunity.id)
+      .maybeSingle();
+    const source = sourceOpportunity ?? opportunity;
     setEditingOpportunity(opportunity);
     setEditForm({
-      title: getLocalizedText(opportunity.title, languageKey, "en") ?? "",
-      description: getLocalizedText(opportunity.description, languageKey, "en") ?? "",
-      direct_url: opportunity.direct_url ?? opportunity.source_url ?? "",
-      earnings_text: getLocalizedText(opportunity.earnings_text, languageKey, "en") ?? "",
-      countries: (opportunity.countries ?? []).map((value) => getLocalizedText(value, languageKey, "en") ?? String(value)).join(", "),
-      devices: (opportunity.devices ?? []).map((value) => getLocalizedText(value, languageKey, "en") ?? String(value)).join(", "),
-      payment_methods: (opportunity.payment_methods ?? []).map((value) => getLocalizedText(value, languageKey, "en") ?? String(value)).join(", "),
-      requirements: (opportunity.requirements ?? []).map((value) => getLocalizedText(value, languageKey, "en") ?? String(value)).join(", "),
-      category_id: opportunity.category_id ? String(opportunity.category_id) : "",
+      title: typeof source.title === "string" ? source.title : getLocalizedText(source.title, "en", "en") ?? "",
+      description: typeof source.description === "string" ? source.description : getLocalizedText(source.description, "en", "en") ?? "",
+      direct_url: source.direct_url ?? source.source_url ?? "",
+      earnings_text: typeof source.earnings_text === "string" ? source.earnings_text : getLocalizedText(source.earnings_text, "en", "en") ?? "",
+      countries: (source.countries ?? []).map((value: unknown) => typeof value === "string" ? value : getLocalizedText(value, "en", "en") ?? String(value)).join(", "),
+      devices: (source.devices ?? []).map((value: unknown) => typeof value === "string" ? value : getLocalizedText(value, "en", "en") ?? String(value)).join(", "),
+      payment_methods: (source.payment_methods ?? []).map((value: unknown) => typeof value === "string" ? value : getLocalizedText(value, "en", "en") ?? String(value)).join(", "),
+      requirements: (source.requirements ?? []).map((value: unknown) => typeof value === "string" ? value : getLocalizedText(value, "en", "en") ?? String(value)).join(", "),
+      category_id: source.category_id ? String(source.category_id) : "",
     });
   }
 
