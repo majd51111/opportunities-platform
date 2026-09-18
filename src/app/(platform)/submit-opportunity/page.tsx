@@ -7,7 +7,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useLanguage } from "@/providers/app-providers";
 import { getPageCopy } from "@/languages/page-copy";
 import type { LanguageCode } from "@/languages";
-import { getLocalizedText } from "@/types";
+import { localizeCategory } from "@/types";
 
 type OpportunityForm = {
   title: string;
@@ -239,7 +239,7 @@ export default function SubmitOpportunityPage() {
   ];
   const categoryOptions = categories.map((category) => ({
     id: String(category.id),
-    label: getLocalizedText(category.name, language, "en") ?? String(category.name ?? ""),
+    label: localizeCategory(category.name, language) ?? String(category.name ?? ""),
   }));
   const filteredCategoryOptions = categoryOptions.filter((category) =>
     category.label.toLowerCase().includes(form.category.trim().toLowerCase()),
