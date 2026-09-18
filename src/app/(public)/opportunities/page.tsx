@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useLanguage } from "@/providers/app-providers";
 import type { Opportunity } from "@/types";
 import type { LanguageCode } from "@/languages";
-import { getLocalizedText, normalizeOpportunityCategory, localizeDevice, localizeVerification, getOpportunityStartUrl } from "@/types";
+import { getLocalizedText, normalizeOpportunityCategory, localizeCategory, localizeDevice, localizeVerification, getOpportunityStartUrl } from "@/types";
 
 const newBadgeLabels: Record<LanguageCode, string> = {
   ar: "جديد",
@@ -202,6 +202,7 @@ setOpportunities(localizedOpportunities);
           {opportunities.map((opportunity) => {
             const category = normalizeOpportunityCategory(opportunity.category, languageKey);
             const title = getLocalizedText(opportunity.title, languageKey, "en") ?? "Opportunity";
+            const summary = getLocalizedText(opportunity.short_description, languageKey, "en");
 const deviceList =
   (localizeDevice(opportunity.devices, languageKey) ?? "");
 
@@ -269,9 +270,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                 )}
 
                 <h2 className="min-h-32 pt-24 text-xl font-semibold leading-7">{title}</h2>
-                {category && (
-                  <p className="mt-1 text-sm text-zinc-500">{category.name}</p>
-                )}
+                {summary && <p className="mt-3 text-sm leading-6 text-red-600">{summary}</p>}
                 <div className="mt-auto flex flex-wrap gap-3 pt-5">
                   {startUrl && (
                     <a
@@ -301,8 +300,10 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                   </button>
                 </div>
 
+                {category && <p className="mt-3 text-sm font-medium text-zinc-600">{t.detailPage.category}: {localizeCategory(category.name, languageKey) ?? category.name}</p>}
+
                 {localizedEarnings && (
-                  <p className="mt-4 text-sm font-medium text-zinc-700">
+                  <p className="mt-2 text-sm font-medium text-zinc-700">
                     {t.opportunitiesPage.earnings}: <span className="text-blue-700">{localizedEarnings}</span>
                   </p>
                 )}

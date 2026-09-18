@@ -191,14 +191,12 @@ export default function FavoritesPage() {
 
                 <h2 className="text-xl font-semibold">{title}</h2>
 
-                {category && (
-                  <p className="mt-1 text-sm text-zinc-500">{getLocalizedText(category.name, language, "en") ?? category.name}</p>
-                )}
+                {summary && <p className="mt-3 leading-6 text-red-600">{summary}</p>}
 
-                {summary && <p className="mt-3 text-zinc-600">{summary}</p>}
+                {category && <p className="mt-3 text-sm font-medium text-zinc-600">{t.detailPage.category}: {getLocalizedText(category.name, language, "en") ?? category.name}</p>}
 
                 {localizedEarnings && (
-                  <p className="mt-4 font-medium">
+                  <p className="mt-2 font-medium">
                     {t.favoritesPage.earnings}: {localizedEarnings}
                   </p>
                 )}

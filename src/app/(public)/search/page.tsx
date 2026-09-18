@@ -212,7 +212,7 @@ useEffect(() => {
                   >
                     <h2 className="text-xl font-semibold">{title}</h2>
                     {category && (
-                      <p className="mt-1 text-sm text-zinc-500">{localizeCategory(category.name, language) ?? category.name}</p>
+                      <p className="mt-1 text-sm text-zinc-600">{t.detailPage.category}: {localizeCategory(category.name, language) ?? category.name}</p>
                     )}
                     {isVerifiedOpportunity(opportunity.verification_status) && (
                       <p className="mt-2 text-sm font-medium text-green-600">
@@ -230,7 +230,7 @@ useEffect(() => {
                       </p>
                     )}
 
-                    {summary && <p className="mt-3 text-zinc-600">{summary}</p>}
+                    {summary && <p className="mt-3 leading-6 text-red-600">{summary}</p>}
 
                     {opportunity.earnings_text && (
                       <p className="mt-4 text-green-600">
