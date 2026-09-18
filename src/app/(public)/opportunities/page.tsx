@@ -358,7 +358,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                   </button>
                 </div>
 
-                {category && <p className="mt-3 text-sm leading-6 text-black">{t.detailPage.category}: <span className="text-red-600">{localizeCategory(category.name, languageKey) ?? category.name}</span></p>}
+                {category && <p className="mt-2 text-sm font-medium text-black">{t.detailPage.category}: <span className="text-red-600">{localizeCategory(category.name, languageKey) ?? category.name}</span></p>}
 
                 {localizedEarnings && (
                   <p className="mt-2 text-sm font-medium text-zinc-700">

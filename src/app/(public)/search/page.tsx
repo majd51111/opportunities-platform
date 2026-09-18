@@ -226,7 +226,7 @@ useEffect(() => {
                       </p>
                     )}
 
-                    {category && <p className="mt-3 text-sm leading-6 text-black">{t.detailPage.category}: <span className="text-red-600">{localizeCategory(category.name, language) ?? category.name}</span></p>}
+                    {category && <p className="mt-2 text-sm font-medium text-black">{t.detailPage.category}: <span className="text-red-600">{localizeCategory(category.name, language) ?? category.name}</span></p>}
 
                     {opportunity.earnings_text && (
                       <p className="mt-4 text-green-600">
