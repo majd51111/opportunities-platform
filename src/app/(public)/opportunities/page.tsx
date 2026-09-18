@@ -46,7 +46,7 @@ export default function OpportunitiesPage() {
   const [canDelete, setCanDelete] = useState(false);
   const [editingOpportunity, setEditingOpportunity] = useState<Opportunity | null>(null);
   const [categories, setCategories] = useState<{ id: number; name: unknown }[]>([]);
-  const [editForm, setEditForm] = useState({ title: "", short_description: "", description: "", direct_url: "", earnings_text: "", countries: "", devices: "", payment_methods: "", requirements: "", category_id: "" });
+  const [editForm, setEditForm] = useState({ title: "", description: "", direct_url: "", earnings_text: "", countries: "", devices: "", payment_methods: "", requirements: "", category_id: "" });
   const [savingEdit, setSavingEdit] = useState(false);
   const fieldCopy = getPageCopy(languageKey).submit;
 
@@ -176,7 +176,6 @@ setOpportunities(localizedOpportunities);
     setEditingOpportunity(opportunity);
     setEditForm({
       title: getLocalizedText(opportunity.title, languageKey, "en") ?? "",
-      short_description: getLocalizedText(opportunity.short_description, languageKey, "en") ?? "",
       description: getLocalizedText(opportunity.description, languageKey, "en") ?? "",
       direct_url: opportunity.direct_url ?? opportunity.source_url ?? "",
       earnings_text: getLocalizedText(opportunity.earnings_text, languageKey, "en") ?? "",
@@ -195,7 +194,7 @@ setOpportunities(localizedOpportunities);
     const { error: saveError } = await getSupabaseBrowserClient().rpc("update_published_opportunity", {
       p_opportunity_id: String(editingOpportunity.id),
       p_title: editForm.title,
-      p_short_description: editForm.short_description || null,
+      p_short_description: null,
       p_description: editForm.description,
       p_direct_url: editForm.direct_url,
       p_earnings_text: editForm.earnings_text || null,
@@ -210,7 +209,7 @@ setOpportunities(localizedOpportunities);
       setError(saveError.message);
       return;
     }
-    setOpportunities((current) => current.map((item) => item.id === editingOpportunity.id ? { ...item, title: editForm.title, short_description: editForm.short_description, description: editForm.description, direct_url: editForm.direct_url, earnings_text: editForm.earnings_text, category_id: editForm.category_id, countries: textToList(editForm.countries), devices: textToList(editForm.devices), payment_methods: textToList(editForm.payment_methods), requirements: textToList(editForm.requirements) } : item));
+    setOpportunities((current) => current.map((item) => item.id === editingOpportunity.id ? { ...item, title: editForm.title, short_description: null, description: editForm.description, direct_url: editForm.direct_url, earnings_text: editForm.earnings_text, category_id: editForm.category_id, countries: textToList(editForm.countries), devices: textToList(editForm.devices), payment_methods: textToList(editForm.payment_methods), requirements: textToList(editForm.requirements) } : item));
     setEditingOpportunity(null);
   }
 
@@ -397,7 +396,6 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-2 text-sm font-medium">{fieldCopy.name}<input value={editForm.title} onChange={(event) => setEditForm({ ...editForm, title: event.target.value })} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
-              <label className="grid gap-2 text-sm font-medium">{fieldCopy.shortDescription}<input value={editForm.short_description} onChange={(event) => setEditForm({ ...editForm, short_description: event.target.value })} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
               <label className="grid gap-2 text-sm font-medium">{fieldCopy.category}<select value={editForm.category_id} onChange={(event) => setEditForm({ ...editForm, category_id: event.target.value })} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal"><option value="">{fieldCopy.categoryPlaceholder}</option>{categories.map((category) => <option key={category.id} value={category.id}>{localizeCategory(category.name, languageKey) ?? getLocalizedText(category.name, languageKey, "en") ?? ""}</option>)}</select></label>
               <label className="grid gap-2 text-sm font-medium sm:col-span-2">{fieldCopy.details}<textarea rows={5} value={editForm.description} onChange={(event) => setEditForm({ ...editForm, description: event.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
               <label className="grid gap-2 text-sm font-medium sm:col-span-2">{fieldCopy.link}<input dir="ltr" value={editForm.direct_url} onChange={(event) => setEditForm({ ...editForm, direct_url: event.target.value })} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal text-left" /></label>

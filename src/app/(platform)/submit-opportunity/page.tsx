@@ -11,7 +11,6 @@ import { localizeCategory } from "@/types";
 
 type OpportunityForm = {
   title: string;
-  shortDescription: string;
   description: string;
   directUrl: string;
   earnings: string;
@@ -24,7 +23,6 @@ type OpportunityForm = {
 
 const emptyForm: OpportunityForm = {
   title: "",
-  shortDescription: "",
   description: "",
   directUrl: "",
   earnings: "",
@@ -290,7 +288,7 @@ export default function SubmitOpportunityPage() {
     const { data: opportunityId, error } = await supabase.rpc("submit_opportunity", {
       p_title: form.title.trim(),
       p_slug: createSlug(form.title),
-      p_short_description: form.shortDescription.trim(),
+      p_short_description: null,
       p_description: form.description.trim(),
       p_direct_url: directUrl.toString(),
       p_earnings_text: form.earnings.trim() || null,
@@ -312,7 +310,7 @@ export default function SubmitOpportunityPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: form.title.trim(),
-          shortDescription: form.shortDescription.trim(),
+          shortDescription: "",
           description: form.description.trim(),
           earningsText: form.earnings.trim() || null,
           countries: toList(form.countries),
