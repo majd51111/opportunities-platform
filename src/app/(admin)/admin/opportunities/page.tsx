@@ -71,14 +71,20 @@ export default function AdminOpportunitiesPage() {
 
   function startEditing(submission: Submission) {
     setEditingId(submission.id);
-    setEditForm({ title: submission.title, short_description: "", description: submission.description ?? "", direct_url: submission.direct_url ?? "", earnings_text: submission.earnings_text ?? "", countries: listToText(submission.countries), devices: listToText(submission.devices), payment_methods: listToText(submission.payment_methods), requirements: listToText(submission.requirements) });
+    setEditForm({ title: submission.title, short_description: submission.short_description ?? "", description: submission.description ?? "", direct_url: submission.direct_url ?? "", earnings_text: submission.earnings_text ?? "", countries: listToText(submission.countries), devices: listToText(submission.devices), payment_methods: listToText(submission.payment_methods), requirements: listToText(submission.requirements) });
   }
 
   async function saveEdit(id: string | number) {
     setReviewingId(id); setMessage("");
-    const { error } = await getSupabaseBrowserClient().rpc("update_pending_opportunity", { p_opportunity_id: String(id), p_short_description: null, p_title: editForm.title, p_description: editForm.description, p_direct_url: editForm.direct_url, p_earnings_text: editForm.earnings_text || null, p_countries: textToList(editForm.countries), p_devices: textToList(editForm.devices), p_payment_methods: textToList(editForm.payment_methods), p_requirements: textToList(editForm.requirements) });
-    setReviewingId(null);
-    if (error) { setMessage(`${copy.error} ${error.message}`); return; }
+    try {
+      const { error } = await getSupabaseBrowserClient().rpc("update_pending_opportunity", { p_opportunity_id: String(id), p_short_description: editForm.short_description.trim() || null, p_title: editForm.title, p_description: editForm.description, p_direct_url: editForm.direct_url, p_earnings_text: editForm.earnings_text || null, p_countries: textToList(editForm.countries), p_devices: textToList(editForm.devices), p_payment_methods: textToList(editForm.payment_methods), p_requirements: textToList(editForm.requirements) });
+      if (error) { setMessage(`${copy.error} ${error.message}`); return; }
+    } catch (error) {
+      setMessage(`${copy.error} ${error instanceof Error ? error.message : "Unknown error"}`);
+      return;
+    } finally {
+      setReviewingId(null);
+    }
     setSubmissions((current) => current.map((item) => item.id === id ? { ...item, title: editForm.title, short_description: editForm.short_description, description: editForm.description, direct_url: editForm.direct_url, earnings_text: editForm.earnings_text, countries: textToList(editForm.countries), devices: textToList(editForm.devices), payment_methods: textToList(editForm.payment_methods), requirements: textToList(editForm.requirements) } : item));
     setEditingId(null);
   }
