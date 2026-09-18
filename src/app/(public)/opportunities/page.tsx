@@ -59,14 +59,14 @@ export default function OpportunitiesPage() {
       const { data, error } = await supabase
         .from("opportunities")
         .select(
-          "id, created_at, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, image_url, direct_url, category_id"
+          "id, created_at, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id"
         )
         .eq("status", "published")
         .order("created_at", { ascending: false });
         const { data: translations, error: translationsError } = await supabase
   .from("opportunity_translations")
   .select(
-    "opportunity_id, language_code, title, short_description, description, earnings_text"
+    "opportunity_id, language_code, title, short_description, description, earnings_text, countries, devices, payment_methods, requirements"
   );
       if (error || translationsError) {
   const queryError = error ?? translationsError;
@@ -100,6 +100,10 @@ for (const translation of translations ?? []) {
     short_description: translation.short_description,
     description: translation.description,
     earnings_text: translation.earnings_text,
+    countries: translation.countries,
+    devices: translation.devices,
+    payment_methods: translation.payment_methods,
+    requirements: translation.requirements,
   };
 }
 
@@ -114,6 +118,10 @@ short_description:
   localized?.short_description || localized?.description || opportunity.short_description,
 description: localized?.description ?? opportunity.description,
 earnings_text: localized?.earnings_text ?? opportunity.earnings_text,
+countries: Array.isArray(localized?.countries) && localized.countries.length ? localized.countries : opportunity.countries,
+devices: Array.isArray(localized?.devices) && localized.devices.length ? localized.devices : opportunity.devices,
+payment_methods: Array.isArray(localized?.payment_methods) && localized.payment_methods.length ? localized.payment_methods : opportunity.payment_methods,
+requirements: Array.isArray(localized?.requirements) && localized.requirements.length ? localized.requirements : opportunity.requirements,
   };
 });
 

@@ -54,7 +54,7 @@ useEffect(() => {
     let request = supabase
     .from("opportunities")
     .select(
-      "id, title, slug, short_description, description, earnings_text, verification_status, devices, countries, direct_url, category:categories(id, name)"
+      "id, title, slug, short_description, description, earnings_text, verification_status, devices, countries, payment_methods, requirements, direct_url, category:categories(id, name)"
     )
     .eq("status", "published");
   
@@ -90,7 +90,42 @@ useEffect(() => {
       return;
     }
 
-    setResults(data ?? []);
+    const opportunities = data ?? [];
+    const { data: translations, error: translationsError } = await supabase
+      .from("opportunity_translations")
+      .select("opportunity_id, language_code, title, short_description, description, earnings_text, countries, devices, payment_methods, requirements")
+      .in("opportunity_id", opportunities.map((opportunity) => opportunity.id));
+
+    if (translationsError) {
+      console.error(translationsError);
+      setResults(opportunities);
+    } else {
+      const languageKey = String(language).split("-")[0].toLowerCase();
+      const translationsByOpportunity = new Map<string, Record<string, Record<string, unknown>>>();
+
+      for (const translation of translations ?? []) {
+        const opportunityId = String(translation.opportunity_id);
+        if (!translationsByOpportunity.has(opportunityId)) translationsByOpportunity.set(opportunityId, {});
+        const languageTranslations = translationsByOpportunity.get(opportunityId)!;
+        languageTranslations[String(translation.language_code).split("-")[0].toLowerCase()] = translation;
+      }
+
+      setResults(opportunities.map((opportunity) => {
+        const translationsForOpportunity = translationsByOpportunity.get(String(opportunity.id));
+        const localized = translationsForOpportunity?.[languageKey] ?? translationsForOpportunity?.en;
+        return localized ? {
+          ...opportunity,
+          title: localized.title ?? opportunity.title,
+          short_description: localized.short_description ?? localized.description ?? opportunity.short_description,
+          description: localized.description ?? opportunity.description,
+          earnings_text: localized.earnings_text ?? opportunity.earnings_text,
+          countries: localized.countries ?? opportunity.countries,
+          devices: localized.devices ?? opportunity.devices,
+          payment_methods: localized.payment_methods ?? opportunity.payment_methods,
+          requirements: localized.requirements ?? opportunity.requirements,
+        } : opportunity;
+      }));
+    }
     setLoading(false);
   }
 
