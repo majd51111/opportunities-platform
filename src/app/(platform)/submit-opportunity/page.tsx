@@ -7,6 +7,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useLanguage } from "@/providers/app-providers";
 import { getPageCopy } from "@/languages/page-copy";
 import type { LanguageCode } from "@/languages";
+import { getLocalizedText } from "@/types";
 
 type OpportunityForm = {
   title: string;
@@ -14,6 +15,7 @@ type OpportunityForm = {
   description: string;
   directUrl: string;
   earnings: string;
+  category: string;
   countries: string;
   devices: string;
   paymentMethods: string;
@@ -26,6 +28,7 @@ const emptyForm: OpportunityForm = {
   description: "",
   directUrl: "",
   earnings: "",
+  category: "",
   countries: "",
   devices: "",
   paymentMethods: "",
@@ -195,8 +198,21 @@ export default function SubmitOpportunityPage() {
   const [form, setForm] = useState<OpportunityForm>(emptyForm);
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [categories, setCategories] = useState<{ id: number; name: unknown }[]>([]);
+  const [categoryId, setCategoryId] = useState("");
 
   const copy = getPageCopy(language).submit;
+  useEffect(() => {
+    async function loadCategories() {
+      const { data } = await getSupabaseBrowserClient()
+        .from("categories")
+        .select("id, name")
+        .order("id", { ascending: true });
+      setCategories(data ?? []);
+    }
+
+    void loadCategories();
+  }, []);
   const deviceNames: Record<LanguageCode, [string, string, string]> = {
     ar: ["كمبيوتر", "آيفون", "أندرويد"],
     en: ["Computer", "iPhone", "Android"],
@@ -220,9 +236,19 @@ export default function SubmitOpportunityPage() {
     { value: "Payoneer", label: t.profilePage.payoneer },
     { value: "Cryptocurrency", label: t.profilePage.cryptocurrency },
   ];
+  const categoryOptions = categories.map((category) => ({
+    id: String(category.id),
+    label: getLocalizedText(category.name, language, "en") ?? String(category.name ?? ""),
+  }));
 
   function updateField(field: keyof OpportunityForm, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function updateCategory(value: string) {
+    const matchingCategory = categoryOptions.find((category) => category.label.toLowerCase() === value.trim().toLowerCase());
+    setCategoryId(matchingCategory?.id ?? "");
+    updateField("category", value);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -253,6 +279,7 @@ export default function SubmitOpportunityPage() {
       p_description: form.description.trim(),
       p_direct_url: directUrl.toString(),
       p_earnings_text: form.earnings.trim() || null,
+      p_category_id: categoryId ? Number(categoryId) : null,
       p_countries: toList(form.countries),
       p_devices: toList(form.devices),
       p_payment_methods: toList(form.paymentMethods),
@@ -303,24 +330,28 @@ export default function SubmitOpportunityPage() {
           setSaving(false);
           setMessage(`${copy.success} لكن تعذر حفظ الترجمات: ${translationSaveError.message}`);
           setForm(emptyForm);
+          setCategoryId("");
           return;
         }
       } else {
         setSaving(false);
         setMessage(`${copy.success} لكن تعذر إنشاء الترجمات: ${String((translationPayload as { error?: string }).error ?? "Translation provider error")}`);
         setForm(emptyForm);
+        setCategoryId("");
         return;
       }
     } catch (translationError) {
       setSaving(false);
       setMessage(`${copy.success} لكن حدث خطأ أثناء الترجمة: ${translationError instanceof Error ? translationError.message : "Unknown error"}`);
       setForm(emptyForm);
+      setCategoryId("");
       return;
     }
 
     setSaving(false);
     setMessage(copy.success);
     setForm(emptyForm);
+    setCategoryId("");
   }
 
   return (
@@ -334,6 +365,7 @@ export default function SubmitOpportunityPage() {
           <label className="grid gap-2 text-sm font-medium">{copy.link}<input required dir="ltr" type="url" value={form.directUrl} onChange={(event) => updateField("directUrl", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal text-left" /></label>
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="grid gap-2 text-sm font-medium">{copy.earnings}<input value={form.earnings} onChange={(event) => updateField("earnings", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
+            <label className="grid gap-2 text-sm font-medium">{copy.category}<input list="opportunity-categories" value={form.category} onChange={(event) => updateCategory(event.target.value)} placeholder={copy.optional} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /><datalist id="opportunity-categories">{categoryOptions.map((category) => <option key={category.id} value={category.label} />)}</datalist></label>
             <label className="grid gap-2 text-sm font-medium">{copy.countries}<input value={form.countries} onChange={(event) => updateField("countries", event.target.value)} placeholder={copy.optional} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
             <label className="grid gap-2 text-sm font-medium">{copy.devices}<SuggestionInput value={form.devices} options={deviceOptions} placeholder={copy.optional} listLabel={copy.devices} onChange={(value) => updateField("devices", value)} /></label>
             <label className="grid gap-2 text-sm font-medium">{copy.paymentMethods}<SuggestionInput value={form.paymentMethods} options={paymentMethodOptions} placeholder={copy.optional} listLabel={copy.paymentMethods} onChange={(value) => updateField("paymentMethods", value)} /></label>
