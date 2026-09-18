@@ -26,6 +26,9 @@ begin
 		raise exception 'Required opportunity details are invalid';
 	end if;
 
+	delete from public.opportunity_translations
+	where opportunity_id::text = p_opportunity_id;
+
 	update public.opportunities
 	set title = trim(p_title),
 			short_description = nullif(trim(p_short_description), ''),
