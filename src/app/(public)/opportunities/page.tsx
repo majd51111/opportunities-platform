@@ -8,6 +8,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useLanguage } from "@/providers/app-providers";
 import type { Opportunity } from "@/types";
 import type { LanguageCode } from "@/languages";
+import { getPageCopy } from "@/languages/page-copy";
 import { getLocalizedText, normalizeOpportunityCategory, localizeCategory, localizeDevice, localizeVerification, getOpportunityStartUrl } from "@/types";
 
 const newBadgeLabels: Record<LanguageCode, string> = {
@@ -38,10 +39,16 @@ export default function OpportunitiesPage() {
   const { t, dir, language } = useLanguage();
   const router = useRouter();
   const languageKey = String(language).split("-")[0].toLowerCase() as LanguageCode;
+  const reviewCopy = getPageCopy(languageKey).review;
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [canDelete, setCanDelete] = useState(false);
+  const [editingOpportunity, setEditingOpportunity] = useState<Opportunity | null>(null);
+  const [categories, setCategories] = useState<{ id: number; name: unknown }[]>([]);
+  const [editForm, setEditForm] = useState({ title: "", short_description: "", description: "", direct_url: "", earnings_text: "", countries: "", devices: "", payment_methods: "", requirements: "", category_id: "" });
+  const [savingEdit, setSavingEdit] = useState(false);
+  const fieldCopy = getPageCopy(languageKey).submit;
 
   useEffect(() => {
     async function loadOpportunities() {
@@ -56,13 +63,14 @@ export default function OpportunitiesPage() {
         setCanDelete(false);
       }
 
-      const { data, error } = await supabase
+      const [{ data, error }, { data: categoryData }] = await Promise.all([supabase
         .from("opportunities")
         .select(
           "id, created_at, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id, category:categories(id, name)"
         )
         .eq("status", "published")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false }), supabase.from("categories").select("id, name").order("id", { ascending: true })]);
+      setCategories(categoryData ?? []);
         const { data: translations, error: translationsError } = await supabase
   .from("opportunity_translations")
   .select(
@@ -162,6 +170,53 @@ setOpportunities(localizedOpportunities);
       return;
     }
     setOpportunities((current) => current.filter((item) => item.id !== opportunityId));
+  }
+
+  function startEditing(opportunity: Opportunity) {
+    setEditingOpportunity(opportunity);
+    setEditForm({
+      title: getLocalizedText(opportunity.title, languageKey, "en") ?? "",
+      short_description: getLocalizedText(opportunity.short_description, languageKey, "en") ?? "",
+      description: getLocalizedText(opportunity.description, languageKey, "en") ?? "",
+      direct_url: opportunity.direct_url ?? opportunity.source_url ?? "",
+      earnings_text: getLocalizedText(opportunity.earnings_text, languageKey, "en") ?? "",
+      countries: (opportunity.countries ?? []).map((value) => getLocalizedText(value, languageKey, "en") ?? String(value)).join(", "),
+      devices: (opportunity.devices ?? []).map((value) => getLocalizedText(value, languageKey, "en") ?? String(value)).join(", "),
+      payment_methods: (opportunity.payment_methods ?? []).map((value) => getLocalizedText(value, languageKey, "en") ?? String(value)).join(", "),
+      requirements: (opportunity.requirements ?? []).map((value) => getLocalizedText(value, languageKey, "en") ?? String(value)).join(", "),
+      category_id: opportunity.category_id ? String(opportunity.category_id) : "",
+    });
+  }
+
+  async function savePublishedEdit() {
+    if (!editingOpportunity) return;
+    setSavingEdit(true);
+    setError("");
+    const { error: saveError } = await getSupabaseBrowserClient().rpc("update_published_opportunity", {
+      p_opportunity_id: String(editingOpportunity.id),
+      p_title: editForm.title,
+      p_short_description: editForm.short_description || null,
+      p_description: editForm.description,
+      p_direct_url: editForm.direct_url,
+      p_earnings_text: editForm.earnings_text || null,
+      p_category_id: editForm.category_id ? Number(editForm.category_id) : null,
+      p_countries: textToList(editForm.countries),
+      p_devices: textToList(editForm.devices),
+      p_payment_methods: textToList(editForm.payment_methods),
+      p_requirements: textToList(editForm.requirements),
+    });
+    setSavingEdit(false);
+    if (saveError) {
+      setError(saveError.message);
+      return;
+    }
+    setOpportunities((current) => current.map((item) => item.id === editingOpportunity.id ? { ...item, title: editForm.title, short_description: editForm.short_description, description: editForm.description, direct_url: editForm.direct_url, earnings_text: editForm.earnings_text, category_id: editForm.category_id, countries: textToList(editForm.countries), devices: textToList(editForm.devices), payment_methods: textToList(editForm.payment_methods), requirements: textToList(editForm.requirements) } : item));
+    setEditingOpportunity(null);
+  }
+
+  function textToList(value: string): string[] | null {
+    const values = value.split(",").map((item) => item.trim()).filter(Boolean);
+    return values.length > 0 ? values : null;
   }
   if (loading) {
     return (
@@ -319,17 +374,44 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                 )}
 
                 {canDelete && (
-                  <button
-                    type="button"
-                    onClick={() => void deleteOpportunity(opportunity.id)}
-                    className="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
-                  >
-                    {t.common.deleteOpportunity}
-                  </button>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button type="button" onClick={() => startEditing(opportunity)} className="inline-flex min-h-10 items-center justify-center rounded-lg border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-50">
+                      {reviewCopy.edit}
+                    </button>
+                    <button type="button" onClick={() => void deleteOpportunity(opportunity.id)} className="inline-flex min-h-10 items-center justify-center rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50">
+                      {t.common.deleteOpportunity}
+                    </button>
+                  </div>
                 )}
               </article>
             );
           })}
+        </div>
+      )}
+      {editingOpportunity && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 px-4 py-8" role="dialog" aria-modal="true" aria-label={reviewCopy.edit}>
+          <div className="mx-auto grid w-full max-w-2xl gap-5 rounded-2xl bg-white p-6 shadow-2xl sm:p-8">
+            <div className="flex items-start justify-between gap-4">
+              <h2 className="text-2xl font-bold">{reviewCopy.edit}</h2>
+              <button type="button" onClick={() => setEditingOpportunity(null)} className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700">{reviewCopy.cancel}</button>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-2 text-sm font-medium">{fieldCopy.name}<input value={editForm.title} onChange={(event) => setEditForm({ ...editForm, title: event.target.value })} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
+              <label className="grid gap-2 text-sm font-medium">{fieldCopy.shortDescription}<input value={editForm.short_description} onChange={(event) => setEditForm({ ...editForm, short_description: event.target.value })} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
+              <label className="grid gap-2 text-sm font-medium">{fieldCopy.category}<select value={editForm.category_id} onChange={(event) => setEditForm({ ...editForm, category_id: event.target.value })} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal"><option value="">{fieldCopy.categoryPlaceholder}</option>{categories.map((category) => <option key={category.id} value={category.id}>{localizeCategory(category.name, languageKey) ?? getLocalizedText(category.name, languageKey, "en") ?? ""}</option>)}</select></label>
+              <label className="grid gap-2 text-sm font-medium sm:col-span-2">{fieldCopy.details}<textarea rows={5} value={editForm.description} onChange={(event) => setEditForm({ ...editForm, description: event.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
+              <label className="grid gap-2 text-sm font-medium sm:col-span-2">{fieldCopy.link}<input dir="ltr" value={editForm.direct_url} onChange={(event) => setEditForm({ ...editForm, direct_url: event.target.value })} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal text-left" /></label>
+              <label className="grid gap-2 text-sm font-medium">{fieldCopy.earnings}<input value={editForm.earnings_text} onChange={(event) => setEditForm({ ...editForm, earnings_text: event.target.value })} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
+              <label className="grid gap-2 text-sm font-medium">{fieldCopy.countries}<input value={editForm.countries} onChange={(event) => setEditForm({ ...editForm, countries: event.target.value })} placeholder={fieldCopy.optional} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
+              <label className="grid gap-2 text-sm font-medium">{fieldCopy.devices}<input value={editForm.devices} onChange={(event) => setEditForm({ ...editForm, devices: event.target.value })} placeholder={fieldCopy.optional} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
+              <label className="grid gap-2 text-sm font-medium">{fieldCopy.paymentMethods}<input value={editForm.payment_methods} onChange={(event) => setEditForm({ ...editForm, payment_methods: event.target.value })} placeholder={fieldCopy.optional} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
+              <label className="grid gap-2 text-sm font-medium sm:col-span-2">{fieldCopy.requirements}<textarea rows={3} value={editForm.requirements} onChange={(event) => setEditForm({ ...editForm, requirements: event.target.value })} placeholder={fieldCopy.optional} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
+            </div>
+            <div className="flex flex-wrap justify-end gap-3">
+              <button type="button" onClick={() => setEditingOpportunity(null)} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-300 px-5 py-2 text-sm font-medium text-zinc-700">{reviewCopy.cancel}</button>
+              <button type="button" disabled={savingEdit} onClick={() => void savePublishedEdit()} className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#2563eb] px-5 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60">{savingEdit ? "..." : reviewCopy.save}</button>
+            </div>
+          </div>
         </div>
       )}
     </main>
