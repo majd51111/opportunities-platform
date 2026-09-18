@@ -173,7 +173,6 @@ export default function FavoritesPage() {
           {favorites.map((opportunity) => {
             const category = normalizeOpportunityCategory(opportunity.category, language);
             const title = getLocalizedText(opportunity.title, language, "en") ?? "Opportunity";
-            const summary = getLocalizedText(opportunity.short_description, language, "en") ?? "";
             const localizedEarnings = getLocalizedText(opportunity.earnings_text, language, "en") ?? opportunity.earnings_text;
 
             return (
@@ -208,12 +207,7 @@ export default function FavoritesPage() {
                   </button>
                 </div>
 
-                {(category || summary) && (
-                  <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm leading-6">
-                    {category && <span className="font-medium text-blue-700">{t.detailPage.category}: {getLocalizedText(category.name, language, "en") ?? category.name}</span>}
-                    {summary && <span className="text-red-600">{summary}</span>}
-                  </div>
-                )}
+                {category && <p className="mt-3 text-sm leading-6 text-black">{t.detailPage.category}: <span className="text-red-600">{getLocalizedText(category.name, language, "en") ?? category.name}</span></p>}
 
                 {localizedEarnings && (
                   <p className="mt-3 font-medium">

@@ -201,7 +201,6 @@ useEffect(() => {
               {results.map((opportunity) => {
                 const category = normalizeOpportunityCategory(opportunity.category, language);
                 const title = getLocalizedText(opportunity.title, language, "en") ?? "Opportunity";
-                const summary = getLocalizedText(opportunity.short_description ?? null, language, "en");
                 const deviceList = localizeDevice(opportunity.devices, language) ?? "";
                 const countryList = joinLocalizedList(opportunity.countries, language);
 
@@ -227,12 +226,7 @@ useEffect(() => {
                       </p>
                     )}
 
-                    {(category || summary) && (
-                      <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm leading-6">
-                        {category && <span className="font-medium text-blue-700">{t.detailPage.category}: {localizeCategory(category.name, language) ?? category.name}</span>}
-                        {summary && <span className="text-red-600">{summary}</span>}
-                      </div>
-                    )}
+                    {category && <p className="mt-3 text-sm leading-6 text-black">{t.detailPage.category}: <span className="text-red-600">{localizeCategory(category.name, language) ?? category.name}</span></p>}
 
                     {opportunity.earnings_text && (
                       <p className="mt-4 text-green-600">

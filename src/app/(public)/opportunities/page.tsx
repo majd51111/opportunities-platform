@@ -202,7 +202,6 @@ setOpportunities(localizedOpportunities);
           {opportunities.map((opportunity) => {
             const category = normalizeOpportunityCategory(opportunity.category, languageKey);
             const title = getLocalizedText(opportunity.title, languageKey, "en") ?? "Opportunity";
-            const summary = getLocalizedText(opportunity.short_description, languageKey, "en");
 const deviceList =
   (localizeDevice(opportunity.devices, languageKey) ?? "");
 
@@ -299,12 +298,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                   </button>
                 </div>
 
-                {(category || summary) && (
-                  <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm leading-6">
-                    {category && <span className="font-medium text-blue-700">{t.detailPage.category}: {localizeCategory(category.name, languageKey) ?? category.name}</span>}
-                    {summary && <span className="text-red-600">{summary}</span>}
-                  </div>
-                )}
+                {category && <p className="mt-3 text-sm leading-6 text-black">{t.detailPage.category}: <span className="text-red-600">{localizeCategory(category.name, languageKey) ?? category.name}</span></p>}
 
                 {localizedEarnings && (
                   <p className="mt-2 text-sm font-medium text-zinc-700">
