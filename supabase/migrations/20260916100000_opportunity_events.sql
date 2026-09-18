@@ -10,6 +10,13 @@ create table if not exists public.opportunity_events (
 alter table public.opportunity_events
   add column if not exists metadata jsonb not null default '{}'::jsonb;
 
+alter table public.opportunity_events
+  drop constraint if exists opportunity_events_event_type_check;
+
+alter table public.opportunity_events
+  add constraint opportunity_events_event_type_check
+  check (event_type = 'started') not valid;
+
 alter table public.opportunity_events enable row level security;
 
 create index if not exists opportunity_events_opportunity_id_idx
