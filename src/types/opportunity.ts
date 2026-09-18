@@ -299,6 +299,16 @@ const categoryTranslations: Record<string, Record<LanguageCode, string>> = {
     ja: "リモートワーク",
     zh: "远程工作",
   },
+  الألعاب: {
+    ar: "الألعاب",
+    en: "Gaming",
+    es: "Videojuegos",
+    fr: "Jeux vidéo",
+    de: "Gaming",
+    pt: "Jogos",
+    ja: "ゲーム",
+    zh: "游戏",
+  },
 };
 
 export function localizeCategory(value: unknown, language: LanguageCode = "en"): string | null {
