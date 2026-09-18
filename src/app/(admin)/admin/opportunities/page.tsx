@@ -56,7 +56,7 @@ export default function AdminOpportunitiesPage() {
     const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
     if (!role || !["admin", "support"].includes(role.role)) { setMessage(copy.access); setLoading(false); return; }
     const [{ data, error }, { data: categoryData }] = await Promise.all([
-      supabase.from("opportunities").select("id, title, slug, short_description, description, direct_url, earnings_text, countries, devices, payment_methods, requirements, status, category_id, category:categories(id, name)").in("status", ["pending", "published"]).order("created_at", { ascending: true }),
+      supabase.from("opportunities").select("id, title, slug, short_description, description, direct_url, earnings_text, countries, devices, payment_methods, requirements, status, category_id, category:categories(id, name)").eq("status", "pending").order("created_at", { ascending: true }),
       supabase.from("categories").select("id, name").order("id", { ascending: true }),
     ]);
     setCategories(categoryData ?? []);
@@ -86,8 +86,7 @@ export default function AdminOpportunitiesPage() {
   async function saveEdit(id: string | number) {
     setReviewingId(id); setMessage("");
     try {
-      const procedure = submissions.find((submission) => submission.id === id)?.status === "published" ? "update_published_opportunity" : "update_pending_opportunity";
-      const { error } = await getSupabaseBrowserClient().rpc(procedure, { p_opportunity_id: String(id), p_short_description: editForm.short_description.trim() || null, p_title: editForm.title, p_description: editForm.description, p_direct_url: editForm.direct_url, p_earnings_text: editForm.earnings_text || null, p_category_id: editForm.category_id ? Number(editForm.category_id) : null, p_countries: textToList(editForm.countries), p_devices: textToList(editForm.devices), p_payment_methods: textToList(editForm.payment_methods), p_requirements: textToList(editForm.requirements) });
+      const { error } = await getSupabaseBrowserClient().rpc("update_pending_opportunity", { p_opportunity_id: String(id), p_short_description: editForm.short_description.trim() || null, p_title: editForm.title, p_description: editForm.description, p_direct_url: editForm.direct_url, p_earnings_text: editForm.earnings_text || null, p_category_id: editForm.category_id ? Number(editForm.category_id) : null, p_countries: textToList(editForm.countries), p_devices: textToList(editForm.devices), p_payment_methods: textToList(editForm.payment_methods), p_requirements: textToList(editForm.requirements) });
       if (error) { setMessage(`${copy.error} ${error.message}`); return; }
     } catch (error) {
       setMessage(`${copy.error} ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -100,12 +99,7 @@ export default function AdminOpportunitiesPage() {
   }
 
   async function approvePublishedOpportunity(id: string | number) {
-    setReviewingId(id); setMessage("");
-    const { error } = await getSupabaseBrowserClient().rpc("approve_published_opportunity", { p_opportunity_id: String(id) });
-    setReviewingId(null);
-    if (error) { setMessage(`${copy.error} ${error.message}`); return; }
-    setSubmissions((current) => current.map((item) => item.id === id ? { ...item, verification_status: "verified" } : item));
-    setMessage(copy.approvePublished);
+    await reviewSubmission(id, "published");
   }
 
   async function translateCurrentOpportunities() {
@@ -169,15 +163,6 @@ export default function AdminOpportunitiesPage() {
 
     setMessage(failedCount === 0 ? `${copy.translated} (${translatedCount})` : `${copy.translated}: ${translatedCount}; ${copy.error}: ${failedCount}. ${lastError}`);
     setTranslating(false);
-  }
-
-  async function deletePublishedOpportunity(id: string | number) {
-    if (!window.confirm("Delete this published opportunity permanently?")) return;
-    setReviewingId(id); setMessage("");
-    const { error } = await getSupabaseBrowserClient().rpc("delete_opportunity_as_admin", { p_opportunity_id: String(id) });
-    setReviewingId(null);
-    if (error) { setMessage(`${copy.error} ${error.message}`); return; }
-    setSubmissions((current) => current.filter((item) => item.id !== id));
   }
 
   const editListFields = <div className="grid gap-4 sm:grid-cols-2">
