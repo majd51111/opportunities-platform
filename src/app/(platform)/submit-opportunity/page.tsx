@@ -200,6 +200,7 @@ export default function SubmitOpportunityPage() {
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState<{ id: number; name: unknown }[]>([]);
   const [categoryId, setCategoryId] = useState("");
+  const [categoryOpen, setCategoryOpen] = useState(false);
 
   const copy = getPageCopy(language).submit;
   useEffect(() => {
@@ -240,6 +241,9 @@ export default function SubmitOpportunityPage() {
     id: String(category.id),
     label: getLocalizedText(category.name, language, "en") ?? String(category.name ?? ""),
   }));
+  const filteredCategoryOptions = categoryOptions.filter((category) =>
+    category.label.toLowerCase().includes(form.category.trim().toLowerCase()),
+  );
 
   function updateField(field: keyof OpportunityForm, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -251,9 +255,20 @@ export default function SubmitOpportunityPage() {
     updateField("category", value);
   }
 
+  function chooseCategory(category: { id: string; label: string }) {
+    setCategoryId(category.id);
+    updateField("category", category.label);
+    setCategoryOpen(false);
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
+
+    if (!categoryId) {
+      setMessage(copy.categoryRequired);
+      return;
+    }
 
     let directUrl: URL;
     try {
@@ -365,7 +380,7 @@ export default function SubmitOpportunityPage() {
           <label className="grid gap-2 text-sm font-medium">{copy.link}<input required dir="ltr" type="url" value={form.directUrl} onChange={(event) => updateField("directUrl", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal text-left" /></label>
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="grid gap-2 text-sm font-medium">{copy.earnings}<input value={form.earnings} onChange={(event) => updateField("earnings", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
-            <label className="grid gap-2 text-sm font-medium">{copy.category}<input list="opportunity-categories" value={form.category} onChange={(event) => updateCategory(event.target.value)} placeholder={copy.optional} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /><datalist id="opportunity-categories">{categoryOptions.map((category) => <option key={category.id} value={category.label} />)}</datalist></label>
+            <label className="relative grid gap-2 text-sm font-medium">{copy.category}<input required value={form.category} onChange={(event) => { updateCategory(event.target.value); setCategoryOpen(true); }} onFocus={() => setCategoryOpen(true)} placeholder={copy.categoryPlaceholder} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" />{categoryOpen && filteredCategoryOptions.length > 0 && <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-48 overflow-y-auto rounded-lg border border-zinc-200 bg-white p-1 shadow-lg">{filteredCategoryOptions.map((category) => <button key={category.id} type="button" onMouseDown={(event) => { event.preventDefault(); chooseCategory(category); }} className="block w-full rounded-md px-3 py-2 text-left text-sm font-normal text-zinc-700 hover:bg-blue-50">{category.label}</button>)}</div>}</label>
             <label className="grid gap-2 text-sm font-medium">{copy.countries}<input value={form.countries} onChange={(event) => updateField("countries", event.target.value)} placeholder={copy.optional} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
             <label className="grid gap-2 text-sm font-medium">{copy.devices}<SuggestionInput value={form.devices} options={deviceOptions} placeholder={copy.optional} listLabel={copy.devices} onChange={(value) => updateField("devices", value)} /></label>
             <label className="grid gap-2 text-sm font-medium">{copy.paymentMethods}<SuggestionInput value={form.paymentMethods} options={paymentMethodOptions} placeholder={copy.optional} listLabel={copy.paymentMethods} onChange={(value) => updateField("paymentMethods", value)} /></label>
