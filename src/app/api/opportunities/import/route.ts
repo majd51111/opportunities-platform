@@ -51,6 +51,27 @@ function normalizeOpportunityUrl(input: string): string {
   return parsed.toString().replace(/\/$/, "");
 }
 
+function normalizeSimilarityText(value: unknown): string {
+  return typeof value === "string"
+    ? value.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").replace(/\s+/g, " ").trim()
+    : "";
+}
+
+function textSimilarity(left: unknown, right: unknown): number {
+  const leftTokens = new Set(normalizeSimilarityText(left).split(" ").filter(Boolean));
+  const rightTokens = new Set(normalizeSimilarityText(right).split(" ").filter(Boolean));
+  if (leftTokens.size === 0 || rightTokens.size === 0) return 0;
+
+  const intersection = [...leftTokens].filter((token) => rightTokens.has(token)).length;
+  return intersection / new Set([...leftTokens, ...rightTokens]).size;
+}
+
+function listSimilarity(left: unknown, right: unknown): number {
+  const leftText = Array.isArray(left) ? left.join(" ") : left;
+  const rightText = Array.isArray(right) ? right.join(" ") : right;
+  return textSimilarity(leftText, rightText);
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
@@ -313,30 +334,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Authentication is required." }, { status: 401 });
   }
 
-  const { data: existingOpportunities } = await supabase
-    .from("opportunities")
-    .select("id, direct_url, status")
-    .in("status", ["pending", "published"])
-    .not("direct_url", "is", null);
-  const normalizedCandidateUrl = normalizeOpportunityUrl(candidate.directUrl);
-  const duplicate = (existingOpportunities ?? []).find((opportunity) => {
-    if (!opportunity.direct_url) return false;
-    try {
-      return normalizeOpportunityUrl(opportunity.direct_url) === normalizedCandidateUrl;
-    } catch {
-      return false;
-    }
-  });
-
-  if (duplicate) {
-    return NextResponse.json({
-      accepted: false,
-      status: "rejected",
-      reasonCode: "duplicate",
-      message: "This opportunity already exists in the review queue or has already been published.",
-    }, { status: 409 });
-  }
-
   if (!candidate.category) {
     const { data: categoryRows } = await supabase
       .from("categories")
@@ -368,6 +365,45 @@ export async function POST(request: Request) {
       status: "rejected",
       message: "الصفحة لا تحتوي على بيانات كافية لإرسال فرصة للمراجعة البشرية.",
     }, { status: 422 });
+  }
+
+  const { data: existingOpportunities } = await supabase
+    .from("opportunities")
+    .select("id, title, description, direct_url, earnings_text, countries, devices, payment_methods, requirements, status")
+    .in("status", ["pending", "published"]);
+  const normalizedCandidateUrl = normalizeOpportunityUrl(candidate.directUrl);
+  const duplicate = (existingOpportunities ?? []).find((opportunity) => {
+    const titleSimilarity = textSimilarity(candidate.title, opportunity.title);
+    const descriptionSimilarity = textSimilarity(candidate.description, opportunity.description);
+    if (titleSimilarity < 0.8 || descriptionSimilarity < 0.65) return false;
+
+    let sameUrl = false;
+    if (opportunity.direct_url) {
+      try {
+        sameUrl = normalizeOpportunityUrl(opportunity.direct_url) === normalizedCandidateUrl;
+      } catch {
+        sameUrl = false;
+      }
+    }
+
+    const metadataSimilarities = [
+      textSimilarity(candidate.earningsText, opportunity.earnings_text),
+      listSimilarity(candidate.countries, opportunity.countries),
+      listSimilarity(candidate.devices, opportunity.devices),
+      listSimilarity(candidate.paymentMethods, opportunity.payment_methods),
+      listSimilarity(candidate.requirements, opportunity.requirements),
+    ].filter((similarity) => similarity >= 0.65).length;
+
+    return sameUrl || metadataSimilarities >= 2;
+  });
+
+  if (duplicate) {
+    return NextResponse.json({
+      accepted: false,
+      status: "rejected",
+      reasonCode: "duplicate",
+      message: "This opportunity is too similar to an opportunity already pending review or published.",
+    }, { status: 409 });
   }
 
   return NextResponse.json({
