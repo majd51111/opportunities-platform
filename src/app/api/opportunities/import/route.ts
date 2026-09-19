@@ -72,6 +72,15 @@ function listSimilarity(left: unknown, right: unknown): number {
   return textSimilarity(leftText, rightText);
 }
 
+function containsOpportunityText(pageText: string, value: unknown, minimumCoverage: number): boolean {
+  const pageTokens = new Set(normalizeSimilarityText(pageText).split(" ").filter(Boolean));
+  const valueTokens = new Set(normalizeSimilarityText(value).split(" ").filter(Boolean));
+  if (pageTokens.size === 0 || valueTokens.size === 0) return false;
+
+  const matchedTokens = [...valueTokens].filter((token) => pageTokens.has(token)).length;
+  return matchedTokens / valueTokens.size >= minimumCoverage;
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
@@ -204,6 +213,56 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "The page does not provide enough text to analyze." }, { status: 422 });
   }
 
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        },
+      },
+    },
+  );
+
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    return NextResponse.json({ error: "Authentication is required." }, { status: 401 });
+  }
+
+  const { data: existingSourceOpportunities } = await supabase
+    .from("opportunities")
+    .select("id, title, description, direct_url, status")
+    .in("status", ["pending", "published"])
+    .not("direct_url", "is", null);
+  const normalizedSourceUrl = normalizeOpportunityUrl(directUrl);
+  const sourceDuplicate = (existingSourceOpportunities ?? []).find((opportunity) => {
+    if (!opportunity.direct_url) return false;
+    try {
+      if (normalizeOpportunityUrl(opportunity.direct_url) !== normalizedSourceUrl) return false;
+    } catch {
+      return false;
+    }
+
+    return containsOpportunityText(pageText, opportunity.title, 0.85)
+      && containsOpportunityText(pageText, opportunity.description, 0.7);
+  });
+
+  if (sourceDuplicate) {
+    return NextResponse.json({
+      accepted: false,
+      status: "rejected",
+      reasonCode: "duplicate",
+      message: "This opportunity already exists in the review queue or has already been published.",
+    }, { status: 409 });
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "AI import is not configured on the server." }, { status: 503 });
@@ -310,29 +369,6 @@ export async function POST(request: Request) {
     earningsText: normalizeString(record.earningsText),
     status: "pending",
   };
-
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        },
-      },
-    },
-  );
-
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) {
-    return NextResponse.json({ error: "Authentication is required." }, { status: 401 });
-  }
 
   if (!candidate.category) {
     const { data: categoryRows } = await supabase
