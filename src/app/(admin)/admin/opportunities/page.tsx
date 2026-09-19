@@ -68,7 +68,37 @@ export default function AdminOpportunitiesPage() {
     if ((data ?? []).length === 0) {
       setMessage(`${copy.pending} (لم يتم العثور على فرص بحالة pending في قاعدة البيانات الحالية)`);
     }
-    setSubmissions((data ?? []) as Submission[]);
+    const opportunityIds = (data ?? []).map((submission) => submission.id);
+    const { data: translationData } = opportunityIds.length > 0
+      ? await supabase
+        .from("opportunity_translations")
+        .select("opportunity_id, language_code, title, short_description, description, earnings_text, countries, devices, payment_methods, requirements")
+        .in("opportunity_id", opportunityIds)
+      : { data: [] };
+    const translationsByOpportunity = new Map<string, Record<string, Record<string, unknown>>>();
+    for (const translation of translationData ?? []) {
+      const opportunityId = String(translation.opportunity_id);
+      if (!translationsByOpportunity.has(opportunityId)) translationsByOpportunity.set(opportunityId, {});
+      const languageCode = String(translation.language_code ?? "").split("-")[0].toLowerCase();
+      translationsByOpportunity.get(opportunityId)![languageCode] = translation;
+    }
+    const languageKey = String(language).split("-")[0].toLowerCase();
+    const localizedSubmissions = (data ?? []).map((submission) => {
+      const translations = translationsByOpportunity.get(String(submission.id));
+      const localized = translations?.[languageKey] ?? translations?.en;
+      return localized ? {
+        ...submission,
+        title: String(localized.title ?? submission.title),
+        short_description: String(localized.short_description ?? submission.short_description ?? "") || null,
+        description: String(localized.description ?? submission.description ?? ""),
+        earnings_text: localized.earnings_text == null ? submission.earnings_text : String(localized.earnings_text),
+        countries: Array.isArray(localized.countries) && localized.countries.length ? localized.countries as string[] : submission.countries,
+        devices: Array.isArray(localized.devices) && localized.devices.length ? localized.devices as string[] : submission.devices,
+        payment_methods: Array.isArray(localized.payment_methods) && localized.payment_methods.length ? localized.payment_methods as string[] : submission.payment_methods,
+        requirements: Array.isArray(localized.requirements) && localized.requirements.length ? localized.requirements as string[] : submission.requirements,
+      } : submission;
+    });
+    setSubmissions(localizedSubmissions as Submission[]);
   }
 
   useEffect(() => { void loadSubmissions(); }, []);
@@ -176,6 +206,7 @@ export default function AdminOpportunitiesPage() {
 
     setMessage(failedCount === 0 ? `${copy.translated} (${translatedCount})` : `${copy.translated}: ${translatedCount}; ${copy.error}: ${failedCount}. ${lastError}`);
     setTranslating(false);
+    await loadSubmissions();
   }
 
   const editListFields = <div className="grid gap-4 sm:grid-cols-2">
