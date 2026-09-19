@@ -264,7 +264,7 @@ export default function SubmitOpportunityPage() {
   async function handleImportFromUrl() {
     const trimmedUrl = importUrl.trim();
     if (!trimmedUrl) {
-      setMessage("يرجى إدخال رابط خارجي أولاً.");
+      setMessage(copy.aiMissingUrl);
       return;
     }
 
@@ -274,7 +274,7 @@ export default function SubmitOpportunityPage() {
         throw new Error();
       }
     } catch {
-      setMessage("يرجى إدخال رابط صحيح يبدأ بـ http أو https.");
+      setMessage(copy.aiInvalidUrl);
       return;
     }
 
@@ -305,7 +305,7 @@ export default function SubmitOpportunityPage() {
       };
 
       if (!response.ok || !payload.accepted) {
-        setMessage(payload.message ?? "تعذر تحليل الرابط. حاول رابطًا آخر.");
+        setMessage(copy.aiError);
         setImportingUrl(false);
         return;
       }
@@ -330,9 +330,9 @@ export default function SubmitOpportunityPage() {
       }
 
       setImportUrl("");
-      setMessage(payload.message ?? "تم تحليل الرابط بنجاح، وتمت إضافة البيانات إلى النموذج للمراجعة.");
+      setMessage(copy.aiSuccess);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "تعذر تحليل الرابط.");
+      setMessage(error instanceof Error ? error.message : copy.aiError);
     } finally {
       setImportingUrl(false);
     }
@@ -452,14 +452,10 @@ export default function SubmitOpportunityPage() {
         <h1 className="text-3xl font-bold">{copy.title}</h1>
         <p className="mt-2 text-zinc-500">{copy.description}</p>
         <form onSubmit={handleSubmit} className="mt-8 grid gap-5">
-          <label className="grid gap-2 text-sm font-medium">{copy.name}<input required value={form.title} onChange={(event) => updateField("title", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
-          <label className="grid gap-2 text-sm font-medium">{copy.details}<textarea rows={5} value={form.description} onChange={(event) => updateField("description", event.target.value)} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
-          <label className="grid gap-2 text-sm font-medium">{copy.link}<input required dir="ltr" type="url" value={form.directUrl} onChange={(event) => updateField("directUrl", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal text-left" /></label>
-
           <div className="rounded-xl border border-dashed border-blue-200 bg-blue-50/40 p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-blue-900">تحليل رابط خارجي باستخدام الذكاء</p>
-              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-blue-700">AI</span>
+              <p className="text-sm font-semibold text-blue-900">{copy.aiTitle}</p>
+              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-blue-700">{copy.aiBadge}</span>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <input
@@ -467,7 +463,7 @@ export default function SubmitOpportunityPage() {
                 type="url"
                 value={importUrl}
                 onChange={(event) => setImportUrl(event.target.value)}
-                placeholder="https://example.com/opportunity"
+                placeholder={copy.aiPlaceholder}
                 className="h-11 flex-1 rounded-lg border border-blue-200 bg-white px-3 py-2 font-normal text-left"
               />
               <button
@@ -476,10 +472,14 @@ export default function SubmitOpportunityPage() {
                 disabled={importingUrl}
                 className="inline-flex h-11 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {importingUrl ? "جارٍ التحليل..." : "تحليل الرابط"}
+                {importingUrl ? copy.aiAnalyzing : copy.aiAnalyze}
               </button>
             </div>
           </div>
+
+          <label className="grid gap-2 text-sm font-medium">{copy.name}<input required value={form.title} onChange={(event) => updateField("title", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
+          <label className="grid gap-2 text-sm font-medium">{copy.details}<textarea rows={5} value={form.description} onChange={(event) => updateField("description", event.target.value)} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
+          <label className="grid gap-2 text-sm font-medium">{copy.link}<input required dir="ltr" type="url" value={form.directUrl} onChange={(event) => updateField("directUrl", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal text-left" /></label>
 
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="grid gap-2 text-sm font-medium">{copy.earnings}<input value={form.earnings} onChange={(event) => updateField("earnings", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
