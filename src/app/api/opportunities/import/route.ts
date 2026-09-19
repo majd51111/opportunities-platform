@@ -95,7 +95,7 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-async function fetchPageText(url: string): Promise<string> {
+async function fetchPageText(url: string): Promise<{ text: string; title: string | null }> {
   const response = await fetch(url, {
     headers: {
       "User-Agent": "Mozilla/5.0 (compatible; opportunities-platform/1.0)",
@@ -109,7 +109,10 @@ async function fetchPageText(url: string): Promise<string> {
   }
 
   const html = await response.text();
-  return stripHtml(html);
+  const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]
+    ?.replace(/\s+/g, " ")
+    .trim() || null;
+  return { text: stripHtml(html), title };
 }
 
 function parseJsonObject(content: string): unknown {
@@ -202,8 +205,11 @@ export async function POST(request: Request) {
   }
 
   let pageText: string;
+  let sourceTitle: string | null = null;
   try {
-    pageText = await fetchPageText(directUrl);
+    const page = await fetchPageText(directUrl);
+    pageText = page.text;
+    sourceTitle = page.title;
   } catch (error) {
     console.error("Opportunity import page fetch failed", error);
     return NextResponse.json({ error: "The source page could not be reached." }, { status: 400 });
@@ -250,8 +256,11 @@ export async function POST(request: Request) {
       return false;
     }
 
-    return containsOpportunityText(pageText, opportunity.title, 0.85)
-      && containsOpportunityText(pageText, opportunity.description, 0.7);
+    const titleMatchesSource = containsOpportunityText(pageText, opportunity.title, 0.55)
+      || (sourceTitle !== null && textSimilarity(sourceTitle, opportunity.title) >= 0.65);
+    const descriptionMatchesSource = containsOpportunityText(pageText, opportunity.description, 0.45);
+
+    return titleMatchesSource && (descriptionMatchesSource || sourceTitle !== null);
   });
 
   if (sourceDuplicate) {

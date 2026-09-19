@@ -385,7 +385,12 @@ export function localizeCategory(value: unknown, language: LanguageCode = "en"):
   const text = getLocalizedText(value, language, "en");
   if (!text) return null;
 
-  return categoryTranslations[text.trim()]?.[language] ?? text;
+  const normalizedText = text.trim().toLocaleLowerCase().replace(/\s+/g, " ");
+  const translationEntry = Object.entries(categoryTranslations).find(([source]) =>
+    source.toLocaleLowerCase().replace(/\s+/g, " ") === normalizedText,
+  )?.[1];
+
+  return translationEntry?.[language] ?? text;
 }
 
 const deviceTranslations: Record<string, Record<LanguageCode, string>> = {
