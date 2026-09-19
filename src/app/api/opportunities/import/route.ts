@@ -3,6 +3,19 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 const IMPORT_PROVIDER_TIMEOUT_MS = 45_000;
+const supportedImportLanguages = ["ar", "en", "es", "fr", "de", "pt", "ja", "zh"] as const;
+type ImportLanguage = (typeof supportedImportLanguages)[number];
+
+const importLanguageNames: Record<ImportLanguage, string> = {
+  ar: "Arabic",
+  en: "English",
+  es: "Spanish",
+  fr: "French",
+  de: "German",
+  pt: "Portuguese",
+  ja: "Japanese",
+  zh: "Chinese",
+};
 
 type ImportedOpportunityData = {
   title: string;
@@ -134,8 +147,11 @@ function inferCategoryFromText(pageText: string, categoryNames: string[]): strin
 }
 
 export async function POST(request: Request) {
-  const requestBody = await request.json().catch(() => null) as { url?: string } | null;
+  const requestBody = await request.json().catch(() => null) as { url?: string; language?: string } | null;
   const rawUrl = requestBody?.url?.trim();
+  const requestedLanguage = supportedImportLanguages.includes(requestBody?.language as ImportLanguage)
+    ? requestBody?.language as ImportLanguage
+    : "en";
 
   if (!rawUrl) {
     return NextResponse.json({ error: "A source URL is required." }, { status: 400 });
@@ -189,6 +205,8 @@ export async function POST(request: Request) {
                 "If the page is not a real opportunity listing or the needed fields are missing, set status to 'rejected' and provide a brief reason.",
                 "If it looks like a real opportunity, set status to 'pending' and fill only the fields you can infer accurately.",
                 "Do not invent facts. Keep text natural and concise.",
+                `Write title, shortDescription, description, earningsText, countries, devices, paymentMethods, requirements, and reason in ${importLanguageNames[requestedLanguage]} (${requestedLanguage}).`,
+                "Keep directUrl unchanged. Use the website's category wording when possible; the user will select the matching platform category.",
                 "Use the exact directUrl value as the opportunity URL.",
                 "Return arrays as JSON arrays, including null values only for earningsText or shortDescription.",
                 `SOURCE_PAGE_TEXT: ${pageText.slice(0, 12000)}`,

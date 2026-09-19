@@ -285,7 +285,7 @@ export default function SubmitOpportunityPage() {
       const response = await fetch("/api/opportunities/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: trimmedUrl }),
+        body: JSON.stringify({ url: trimmedUrl, language }),
       });
       const payload = await response.json() as {
         accepted?: boolean;
