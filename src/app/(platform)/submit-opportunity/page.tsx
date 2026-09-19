@@ -196,6 +196,8 @@ export default function SubmitOpportunityPage() {
   const [form, setForm] = useState<OpportunityForm>(emptyForm);
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [importingUrl, setImportingUrl] = useState(false);
+  const [importUrl, setImportUrl] = useState("");
   const [categories, setCategories] = useState<{ id: number; name: unknown }[]>([]);
   const [categoryId, setCategoryId] = useState("");
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -257,6 +259,83 @@ export default function SubmitOpportunityPage() {
     setCategoryId(category.id);
     updateField("category", category.label);
     setCategoryOpen(false);
+  }
+
+  async function handleImportFromUrl() {
+    const trimmedUrl = importUrl.trim();
+    if (!trimmedUrl) {
+      setMessage("يرجى إدخال رابط خارجي أولاً.");
+      return;
+    }
+
+    try {
+      const url = new URL(trimmedUrl);
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        throw new Error();
+      }
+    } catch {
+      setMessage("يرجى إدخال رابط صحيح يبدأ بـ http أو https.");
+      return;
+    }
+
+    setImportingUrl(true);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/opportunities/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: trimmedUrl }),
+      });
+      const payload = await response.json() as {
+        accepted?: boolean;
+        status?: string;
+        message?: string;
+        preview?: {
+          title?: string;
+          description?: string;
+          directUrl?: string;
+          category?: string;
+          countries?: string[];
+          devices?: string[];
+          paymentMethods?: string[];
+          requirements?: string[];
+          earnings?: string;
+        };
+      };
+
+      if (!response.ok || !payload.accepted) {
+        setMessage(payload.message ?? "تعذر تحليل الرابط. حاول رابطًا آخر.");
+        setImportingUrl(false);
+        return;
+      }
+
+      const preview = payload.preview ?? {};
+      setForm((current) => ({
+        ...current,
+        title: preview.title ?? current.title,
+        description: preview.description ?? current.description,
+        directUrl: preview.directUrl ?? current.directUrl,
+        earnings: preview.earnings ?? current.earnings,
+        category: preview.category ?? current.category,
+        countries: preview.countries?.join(", ") ?? current.countries,
+        devices: preview.devices?.join(", ") ?? current.devices,
+        paymentMethods: preview.paymentMethods?.join(", ") ?? current.paymentMethods,
+        requirements: preview.requirements?.join(", ") ?? current.requirements,
+      }));
+
+      if (preview.category) {
+        const matchingCategory = categoryOptions.find((category) => category.label.toLowerCase() === preview.category!.trim().toLowerCase());
+        setCategoryId(matchingCategory?.id ?? "");
+      }
+
+      setImportUrl("");
+      setMessage(payload.message ?? "تم تحليل الرابط بنجاح، وتمت إضافة البيانات إلى النموذج للمراجعة.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "تعذر تحليل الرابط.");
+    } finally {
+      setImportingUrl(false);
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -376,6 +455,32 @@ export default function SubmitOpportunityPage() {
           <label className="grid gap-2 text-sm font-medium">{copy.name}<input required value={form.title} onChange={(event) => updateField("title", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
           <label className="grid gap-2 text-sm font-medium">{copy.details}<textarea rows={5} value={form.description} onChange={(event) => updateField("description", event.target.value)} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
           <label className="grid gap-2 text-sm font-medium">{copy.link}<input required dir="ltr" type="url" value={form.directUrl} onChange={(event) => updateField("directUrl", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal text-left" /></label>
+
+          <div className="rounded-xl border border-dashed border-blue-200 bg-blue-50/40 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-blue-900">تحليل رابط خارجي باستخدام الذكاء</p>
+              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-blue-700">AI</span>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <input
+                dir="ltr"
+                type="url"
+                value={importUrl}
+                onChange={(event) => setImportUrl(event.target.value)}
+                placeholder="https://example.com/opportunity"
+                className="h-11 flex-1 rounded-lg border border-blue-200 bg-white px-3 py-2 font-normal text-left"
+              />
+              <button
+                type="button"
+                onClick={handleImportFromUrl}
+                disabled={importingUrl}
+                className="inline-flex h-11 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {importingUrl ? "جارٍ التحليل..." : "تحليل الرابط"}
+              </button>
+            </div>
+          </div>
+
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="grid gap-2 text-sm font-medium">{copy.earnings}<input value={form.earnings} onChange={(event) => updateField("earnings", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
             <label className="relative grid gap-2 text-sm font-medium">{copy.category}<div className="flex h-11 items-center rounded-lg border border-zinc-300 bg-white px-1.5 focus-within:border-[#2563eb] focus-within:ring-2 focus-within:ring-blue-100"><input required value={form.category} onChange={(event) => { updateCategory(event.target.value); setCategoryOpen(true); }} onFocus={() => setCategoryOpen(true)} placeholder={copy.categoryPlaceholder} className="min-w-0 flex-1 border-0 bg-transparent px-2 py-2 font-normal outline-none" /><button type="button" aria-label={copy.category} aria-expanded={categoryOpen} onClick={() => setCategoryOpen((current) => !current)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-50 text-zinc-500 transition hover:bg-blue-50 hover:text-[#2563eb]"><span className={`h-2.5 w-2.5 rotate-45 border-b-2 border-r-2 border-current transition-transform ${categoryOpen ? "-translate-y-0.5 rotate-[225deg]" : "-translate-y-0.5"}`} /></button></div>{categoryOpen && filteredCategoryOptions.length > 0 && <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-48 overflow-y-auto rounded-lg border border-zinc-200 bg-white p-1 shadow-lg">{filteredCategoryOptions.map((category) => <button key={category.id} type="button" onMouseDown={(event) => { event.preventDefault(); chooseCategory(category); }} className="block w-full rounded-md px-3 py-2 text-left text-sm font-normal text-zinc-700 hover:bg-blue-50">{category.label}</button>)}</div>}</label>
