@@ -343,7 +343,7 @@ export default function SubmitOpportunityPage() {
     event.preventDefault();
     setMessage("");
 
-    if (!categoryId) {
+    if (!form.category.trim()) {
       setMessage(copy.categoryRequired);
       return;
     }
@@ -377,6 +377,7 @@ export default function SubmitOpportunityPage() {
       p_devices: toList(form.devices),
       p_payment_methods: toList(form.paymentMethods),
       p_requirements: toList(form.requirements),
+      p_category_name: form.category.trim() || null,
     });
     if (error) {
       setSaving(false);
