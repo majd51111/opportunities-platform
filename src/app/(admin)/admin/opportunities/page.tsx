@@ -43,6 +43,7 @@ export default function AdminOpportunitiesPage() {
   const [reviewingId, setReviewingId] = useState<string | number | null>(null);
   const [editingId, setEditingId] = useState<string | number | null>(null);
   const [translating, setTranslating] = useState(false);
+  const [translationTargets, setTranslationTargets] = useState<Submission[]>([]);
   const [categories, setCategories] = useState<{ id: number; name: unknown }[]>([]);
   const [editForm, setEditForm] = useState({ title: "", short_description: "", description: "", direct_url: "", earnings_text: "", countries: "", devices: "", payment_methods: "", requirements: "", category_id: "" });
   const copy = getPageCopy(language).review;
@@ -55,11 +56,13 @@ export default function AdminOpportunitiesPage() {
     if (!user) { setMessage(copy.access); setLoading(false); return; }
     const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
     if (!role || !["admin", "support"].includes(role.role)) { setMessage(copy.access); setLoading(false); return; }
-    const [{ data, error }, { data: categoryData }] = await Promise.all([
+    const [{ data, error }, { data: categoryData }, { data: allOpportunityData }] = await Promise.all([
       supabase.from("opportunities").select("id, title, slug, short_description, description, direct_url, earnings_text, countries, devices, payment_methods, requirements, status, category_id, category:categories(id, name)").eq("status", "pending").order("created_at", { ascending: true }),
       supabase.from("categories").select("id, name").order("id", { ascending: true }),
+      supabase.from("opportunities").select("id, title, slug, short_description, description, direct_url, earnings_text, countries, devices, payment_methods, requirements, status, category_id").in("status", ["pending", "published"]).order("created_at", { ascending: true }),
     ]);
     setCategories(categoryData ?? []);
+    setTranslationTargets((allOpportunityData ?? []) as Submission[]);
     setLoading(false);
     if (error) { setMessage(`${copy.error} ${error.message}`); return; }
     if ((data ?? []).length === 0) {
@@ -103,7 +106,7 @@ export default function AdminOpportunitiesPage() {
   }
 
   async function translateCurrentOpportunities() {
-    if (submissions.length === 0) return;
+    if (translationTargets.length === 0) return;
     setTranslating(true); setMessage("");
     let translatedCount = 0;
     let failedCount = 0;
@@ -133,7 +136,7 @@ export default function AdminOpportunitiesPage() {
       }
     };
 
-    for (const submission of submissions) {
+    for (const submission of translationTargets) {
       let completed = false;
       for (let attempt = 0; attempt < 3 && !completed; attempt += 1) {
         try {
@@ -192,7 +195,7 @@ export default function AdminOpportunitiesPage() {
   </div>;
 
   return <main dir={dir} className="mx-auto w-full max-w-6xl px-6 py-12">
-    <div className="mb-8 flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-3xl font-bold">{copy.title}</h1><p className="mt-2 text-zinc-500">{copy.description}</p></div><button type="button" disabled={translating || submissions.length === 0} onClick={() => void translateCurrentOpportunities()} className="inline-flex min-h-10 items-center justify-center rounded-lg border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-blue-600 disabled:cursor-not-allowed disabled:opacity-50">{translating ? copy.translating : copy.translate}</button></div>
+    <div className="mb-8 flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-3xl font-bold">{copy.title}</h1><p className="mt-2 text-zinc-500">{copy.description}</p></div><button type="button" disabled={translating || translationTargets.length === 0} onClick={() => void translateCurrentOpportunities()} className="inline-flex min-h-10 items-center justify-center rounded-lg border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-blue-600 disabled:cursor-not-allowed disabled:opacity-50">{translating ? copy.translating : copy.translate}</button></div>
     {message && <p className="mb-5 rounded-lg bg-[#f0efff] px-4 py-3 text-sm text-[#3b3971]">{message}</p>}
     {loading ? <p className="text-zinc-500">...</p> : submissions.length === 0 ? <p className="text-zinc-500">{copy.pending}</p> : <div className="grid gap-5 md:grid-cols-2">{submissions.map((submission) => <article key={submission.id} className="flex h-full flex-col rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">{editingId === submission.id ? <div className="grid gap-3">{editListFields}<input value={editForm.title} onChange={(event) => setEditForm({ ...editForm, title: event.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2 text-xl font-semibold" /><textarea rows={5} value={editForm.description} onChange={(event) => setEditForm({ ...editForm, description: event.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2" /><input dir="ltr" value={editForm.direct_url} onChange={(event) => setEditForm({ ...editForm, direct_url: event.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2" /><input value={editForm.earnings_text} onChange={(event) => setEditForm({ ...editForm, earnings_text: event.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2" /><div className="flex gap-3"><button type="button" disabled={reviewingId === submission.id} onClick={() => void saveEdit(submission.id)} className="rounded-lg bg-[#2563eb] px-4 py-2 text-sm font-medium text-white">{copy.save}</button><button type="button" onClick={() => setEditingId(null)} className="rounded-lg border border-zinc-300 px-4 py-2 text-sm">{copy.cancel}</button></div></div> : <><h2 className="text-xl font-semibold">{submission.title}</h2>{submission.earnings_text && <p className="mt-4 text-sm text-zinc-600">{submission.earnings_text}</p>}{submission.direct_url && <a href={submission.direct_url} target="_blank" rel="noopener noreferrer" className="mt-4 break-all text-sm text-[#4c3ecb] underline">{submission.direct_url}</a>}<div className="mt-auto grid gap-3 pt-5"><Link href={`/opportunities/${submission.id}`} className="inline-flex min-h-10 items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50">{t.opportunitiesPage.viewOpportunity}</Link><div className="grid grid-cols-3 gap-3"><button type="button" onClick={() => startEditing(submission)} className="inline-flex min-h-10 items-center justify-center rounded-lg border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50">{copy.edit}</button><button type="button" disabled={reviewingId === submission.id} onClick={() => void reviewSubmission(submission.id, "published")} className="inline-flex min-h-10 items-center justify-center rounded-lg bg-[#2563eb] px-4 py-2 text-sm font-medium text-white disabled:opacity-60">{copy.approve}</button><button type="button" disabled={reviewingId === submission.id} onClick={() => void reviewSubmission(submission.id, "rejected")} className="inline-flex min-h-10 items-center justify-center rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60">{copy.reject}</button></div></div></>}</article>)}</div>}
   </main>;
