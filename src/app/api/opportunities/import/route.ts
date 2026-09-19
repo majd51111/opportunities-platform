@@ -42,6 +42,15 @@ function sanitizeUrl(input: string): string | null {
   }
 }
 
+function normalizeOpportunityUrl(input: string): string {
+  const parsed = new URL(input);
+  parsed.hostname = parsed.hostname.toLowerCase().replace(/^www\./, "");
+  parsed.hash = "";
+  parsed.search = "";
+  parsed.pathname = parsed.pathname.replace(/\/+$/, "") || "/";
+  return parsed.toString().replace(/\/$/, "");
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
@@ -302,6 +311,30 @@ export async function POST(request: Request) {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
     return NextResponse.json({ error: "Authentication is required." }, { status: 401 });
+  }
+
+  const { data: existingOpportunities } = await supabase
+    .from("opportunities")
+    .select("id, direct_url, status")
+    .in("status", ["pending", "published"])
+    .not("direct_url", "is", null);
+  const normalizedCandidateUrl = normalizeOpportunityUrl(candidate.directUrl);
+  const duplicate = (existingOpportunities ?? []).find((opportunity) => {
+    if (!opportunity.direct_url) return false;
+    try {
+      return normalizeOpportunityUrl(opportunity.direct_url) === normalizedCandidateUrl;
+    } catch {
+      return false;
+    }
+  });
+
+  if (duplicate) {
+    return NextResponse.json({
+      accepted: false,
+      status: "rejected",
+      reasonCode: "duplicate",
+      message: "This opportunity already exists in the review queue or has already been published.",
+    }, { status: 409 });
   }
 
   if (!candidate.category) {
