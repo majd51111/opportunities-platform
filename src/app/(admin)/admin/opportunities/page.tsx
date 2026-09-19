@@ -136,7 +136,7 @@ export default function AdminOpportunitiesPage() {
       }
     };
 
-    for (const submission of translationTargets) {
+    const translateOne = async (submission: Submission) => {
       let completed = false;
       for (let attempt = 0; attempt < 3 && !completed; attempt += 1) {
         try {
@@ -162,7 +162,17 @@ export default function AdminOpportunitiesPage() {
         }
       }
       if (!completed) failedCount += 1;
-    }
+    };
+
+    const workerCount = Math.min(3, translationTargets.length);
+    let nextIndex = 0;
+    await Promise.all(Array.from({ length: workerCount }, async () => {
+      while (nextIndex < translationTargets.length) {
+        const submission = translationTargets[nextIndex];
+        nextIndex += 1;
+        await translateOne(submission);
+      }
+    }));
 
     setMessage(failedCount === 0 ? `${copy.translated} (${translatedCount})` : `${copy.translated}: ${translatedCount}; ${copy.error}: ${failedCount}. ${lastError}`);
     setTranslating(false);
