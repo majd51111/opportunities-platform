@@ -95,7 +95,7 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-async function fetchPageText(url: string): Promise<{ text: string; title: string | null }> {
+async function fetchPageText(url: string): Promise<{ text: string; title: string | null; description: string | null }> {
   const response = await fetch(url, {
     headers: {
       "User-Agent": "Mozilla/5.0 (compatible; opportunities-platform/1.0)",
@@ -112,7 +112,10 @@ async function fetchPageText(url: string): Promise<{ text: string; title: string
   const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]
     ?.replace(/\s+/g, " ")
     .trim() || null;
-  return { text: stripHtml(html), title };
+  const description = html.match(/<meta[^>]+(?:name|property)=["'](?:description|og:description)["'][^>]+content=["']([^"']*)["']/i)?.[1]
+    ?.replace(/\s+/g, " ")
+    .trim() || null;
+  return { text: stripHtml(html), title, description };
 }
 
 function parseJsonObject(content: string): unknown {
@@ -206,10 +209,12 @@ export async function POST(request: Request) {
 
   let pageText: string;
   let sourceTitle: string | null = null;
+  let sourceDescription: string | null = null;
   try {
     const page = await fetchPageText(directUrl);
     pageText = page.text;
     sourceTitle = page.title;
+    sourceDescription = page.description;
   } catch (error) {
     console.error("Opportunity import page fetch failed", error);
     return NextResponse.json({ error: "The source page could not be reached." }, { status: 400 });
@@ -256,11 +261,12 @@ export async function POST(request: Request) {
       return false;
     }
 
-    const titleMatchesSource = containsOpportunityText(pageText, opportunity.title, 0.55)
-      || (sourceTitle !== null && textSimilarity(sourceTitle, opportunity.title) >= 0.65);
-    const descriptionMatchesSource = containsOpportunityText(pageText, opportunity.description, 0.45);
+    const titleMatchesSource = (sourceTitle !== null && textSimilarity(sourceTitle, opportunity.title) >= 0.6)
+      || containsOpportunityText(pageText, opportunity.title, 0.55);
+    const descriptionMatchesSource = (sourceDescription !== null && textSimilarity(sourceDescription, opportunity.description) >= 0.45)
+      || containsOpportunityText(pageText, opportunity.description, 0.45);
 
-    return titleMatchesSource && (descriptionMatchesSource || sourceTitle !== null);
+    return titleMatchesSource && descriptionMatchesSource;
   });
 
   if (sourceDuplicate) {
@@ -302,11 +308,15 @@ export async function POST(request: Request) {
                 "Return valid JSON only. Use keys: title, shortDescription, description, directUrl, category, countries, devices, paymentMethods, requirements, earningsText, status, reason.",
                 "If the page is not a real opportunity listing or the needed fields are missing, set status to 'rejected' and provide a brief reason.",
                 "If it looks like a real opportunity, set status to 'pending' and fill only the fields you can infer accurately.",
-                "Do not invent facts. Keep text natural and concise.",
+                "Do not invent, alter, merge, or improve facts from the source page.",
+                "Never rewrite a title or description to make a duplicate look different.",
+                "If the source page matches an existing opportunity provided below, set status to 'rejected' and reason to 'duplicate'.",
+                "For accepted opportunities, preserve the source title, direct URL, numbers, brand names, and factual values; translation is allowed only for the selected output language.",
                 `Write title, shortDescription, description, earningsText, countries, devices, paymentMethods, requirements, and reason in ${importLanguageNames[requestedLanguage]} (${requestedLanguage}).`,
                 "Keep directUrl unchanged. Use the website's category wording when possible; the user will select the matching platform category.",
                 "Use the exact directUrl value as the opportunity URL.",
                 "Return arrays as JSON arrays, including null values only for earningsText or shortDescription.",
+                `EXISTING_OPPORTUNITIES_FOR_DUPLICATE_CHECK: ${JSON.stringify((existingSourceOpportunities ?? []).map((opportunity) => ({ title: opportunity.title, description: opportunity.description, directUrl: opportunity.direct_url })))}`,
                 `SOURCE_PAGE_TEXT: ${pageText.slice(0, 12000)}`,
               ].join("\n"),
             }],
@@ -354,12 +364,16 @@ export async function POST(request: Request) {
 
   const record = parsed as Record<string, unknown>;
   const status = record.status === "pending" ? "pending" : "rejected";
+  const reason = normalizeString(record.reason);
 
-  if (status === "rejected") {
+  if (status === "rejected" || reason?.toLowerCase() === "duplicate") {
     return NextResponse.json({
       accepted: false,
       status: "rejected",
-      message: normalizeString(record.reason) ?? "لم يتم العثور على بيانات كافية في الصفحة لتأكيد الفرصة.",
+      reasonCode: reason?.toLowerCase() === "duplicate" ? "duplicate" : undefined,
+      message: reason?.toLowerCase() === "duplicate"
+        ? "This opportunity already exists in the review queue or has already been published."
+        : reason ?? "لم يتم العثور على بيانات كافية في الصفحة لتأكيد الفرصة.",
     }, { status: 422 });
   }
 
