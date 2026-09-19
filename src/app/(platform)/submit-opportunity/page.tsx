@@ -291,6 +291,7 @@ export default function SubmitOpportunityPage() {
         accepted?: boolean;
         status?: string;
         message?: string;
+        reasonCode?: string;
         preview?: {
           title?: string;
           description?: string;
@@ -305,7 +306,7 @@ export default function SubmitOpportunityPage() {
       };
 
       if (!response.ok || !payload.accepted) {
-        setMessage(copy.aiError);
+        setMessage(payload.reasonCode === "duplicate" ? copy.aiDuplicate : copy.aiError);
         setImportingUrl(false);
         return;
       }
