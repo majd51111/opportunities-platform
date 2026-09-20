@@ -116,20 +116,20 @@ for (const translation of translations ?? []) {
 }
 
 const localizedOpportunities = (data ?? []).map((opportunity) => {
-const localized =
-  translationsByOpportunity.get(String(opportunity.id))?.[languageKey] ??
-  translationsByOpportunity.get(String(opportunity.id))?.["en"];
+const opportunityTranslations = translationsByOpportunity.get(String(opportunity.id));
+const localized = opportunityTranslations?.[languageKey];
+const fallback = languageKey === "en" ? opportunityTranslations?.["en"] : undefined;
   return {
     ...opportunity,
-    title: localized?.title ?? opportunity.title,
+    title: localized?.title ?? fallback?.title ?? opportunity.title,
 short_description:
-  localized?.short_description || localized?.description || opportunity.short_description,
-description: localized?.description ?? opportunity.description,
-earnings_text: localized?.earnings_text ?? opportunity.earnings_text,
-countries: Array.isArray(localized?.countries) && localized.countries.length ? localized.countries : opportunity.countries,
-devices: Array.isArray(localized?.devices) && localized.devices.length ? localized.devices : opportunity.devices,
-payment_methods: Array.isArray(localized?.payment_methods) && localized.payment_methods.length ? localized.payment_methods : opportunity.payment_methods,
-requirements: Array.isArray(localized?.requirements) && localized.requirements.length ? localized.requirements : opportunity.requirements,
+  localized?.short_description || localized?.description || fallback?.short_description || fallback?.description || opportunity.short_description,
+ description: localized?.description ?? fallback?.description ?? opportunity.description,
+ earnings_text: localized?.earnings_text ?? fallback?.earnings_text ?? opportunity.earnings_text,
+ countries: Array.isArray(localized?.countries) && localized.countries.length ? localized.countries : Array.isArray(fallback?.countries) && fallback.countries.length ? fallback.countries : opportunity.countries,
+ devices: Array.isArray(localized?.devices) && localized.devices.length ? localized.devices : Array.isArray(fallback?.devices) && fallback.devices.length ? fallback.devices : opportunity.devices,
+ payment_methods: Array.isArray(localized?.payment_methods) && localized.payment_methods.length ? localized.payment_methods : Array.isArray(fallback?.payment_methods) && fallback.payment_methods.length ? fallback.payment_methods : opportunity.payment_methods,
+ requirements: Array.isArray(localized?.requirements) && localized.requirements.length ? localized.requirements : Array.isArray(fallback?.requirements) && fallback.requirements.length ? fallback.requirements : opportunity.requirements,
   };
 });
 
