@@ -237,12 +237,23 @@ export default function SubmitOpportunityPage() {
     { value: "Payoneer", label: t.profilePage.payoneer },
     { value: "Cryptocurrency", label: t.profilePage.cryptocurrency },
   ];
+  function normalizeCategoryMatchKey(value: string): string {
+    return value
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLocaleLowerCase()
+      .replace(/&/g, " and ")
+      .replace(/[^a-z0-9\u0600-\u06ff]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
   const categoryOptions = categories.map((category) => ({
     id: String(category.id),
     label: localizeCategory(category.name, language) ?? String(category.name ?? ""),
   }));
   const filteredCategoryOptions = categoryOptions.filter((category) =>
-    category.label.toLowerCase().includes(form.category.trim().toLowerCase()),
+    normalizeCategoryMatchKey(category.label).includes(normalizeCategoryMatchKey(form.category.trim())),
   );
 
   function updateField(field: keyof OpportunityForm, value: string) {
@@ -250,7 +261,8 @@ export default function SubmitOpportunityPage() {
   }
 
   function updateCategory(value: string) {
-    const matchingCategory = categoryOptions.find((category) => category.label.toLowerCase() === value.trim().toLowerCase());
+    const normalizedValue = normalizeCategoryMatchKey(value.trim());
+    const matchingCategory = categoryOptions.find((category) => normalizeCategoryMatchKey(category.label) === normalizedValue);
     setCategoryId(matchingCategory?.id ?? "");
     updateField("category", value);
   }
@@ -326,7 +338,8 @@ export default function SubmitOpportunityPage() {
       }));
 
       if (preview.category) {
-        const matchingCategory = categoryOptions.find((category) => category.label.toLowerCase() === preview.category!.trim().toLowerCase());
+        const normalizedValue = normalizeCategoryMatchKey(preview.category.trim());
+        const matchingCategory = categoryOptions.find((category) => normalizeCategoryMatchKey(category.label) === normalizedValue);
         setCategoryId(matchingCategory?.id ?? "");
       }
 

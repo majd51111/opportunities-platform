@@ -319,6 +319,16 @@ const categoryTranslations: Record<string, Record<LanguageCode, string>> = {
     ja: "アプリとウェブサイト",
     zh: "应用和网站",
   },
+  "Apps & Websites": {
+    ar: "التطبيقات والمواقع",
+    en: "Apps and websites",
+    es: "Aplicaciones y sitios web",
+    fr: "Applications et sites web",
+    de: "Apps und Websites",
+    pt: "Aplicativos e sites",
+    ja: "アプリとウェブサイト",
+    zh: "应用和网站",
+  },
   التسويق: {
     ar: "التسويق",
     en: "Marketing",
@@ -379,15 +389,66 @@ const categoryTranslations: Record<string, Record<LanguageCode, string>> = {
     ja: "ゲーム",
     zh: "游戏",
   },
+  "Payment methods": {
+    ar: "طرق الدفع",
+    en: "Payment methods",
+    es: "Métodos de pago",
+    fr: "Méthodes de paiement",
+    de: "Zahlungsmethoden",
+    pt: "Métodos de pagamento",
+    ja: "支払い方法",
+    zh: "支付方式",
+  },
+  "طرق الدفع": {
+    ar: "طرق الدفع",
+    en: "Payment methods",
+    es: "Métodos de pago",
+    fr: "Méthodes de paiement",
+    de: "Zahlungsmethoden",
+    pt: "Métodos de pagamento",
+    ja: "支払い方法",
+    zh: "支付方式",
+  },
+  Devices: {
+    ar: "الأجهزة",
+    en: "Devices",
+    es: "Dispositivos",
+    fr: "Appareils",
+    de: "Geräte",
+    pt: "Dispositivos",
+    ja: "デバイス",
+    zh: "设备",
+  },
+  "الأجهزة": {
+    ar: "الأجهزة",
+    en: "Devices",
+    es: "Dispositivos",
+    fr: "Appareils",
+    de: "Geräte",
+    pt: "Dispositivos",
+    ja: "デバイス",
+    zh: "设备",
+  },
 };
+
+function normalizeCategoryKey(value: string): string {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9\u0600-\u06ff]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 export function localizeCategory(value: unknown, language: LanguageCode = "en"): string | null {
   const text = getLocalizedText(value, language, "en");
   if (!text) return null;
 
-  const normalizedText = text.trim().toLocaleLowerCase().replace(/\s+/g, " ");
+  const normalizedText = normalizeCategoryKey(text);
   const translationEntry = Object.entries(categoryTranslations).find(([source]) =>
-    source.toLocaleLowerCase().replace(/\s+/g, " ") === normalizedText,
+    normalizeCategoryKey(source) === normalizedText,
   )?.[1];
 
   return translationEntry?.[language] ?? text;
