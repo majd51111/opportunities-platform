@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState, type InvalidEvent } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useLanguage } from "@/providers/app-providers";
@@ -199,6 +199,7 @@ export default function SubmitOpportunityPage() {
   const [message, setMessage] = useState("");
   const [toastMessage, setToastMessage] = useState("");
   const [toastKind, setToastKind] = useState<ToastKind>("success");
+  const [invalidField, setInvalidField] = useState<string | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [importingUrl, setImportingUrl] = useState(false);
@@ -268,6 +269,26 @@ export default function SubmitOpportunityPage() {
     ja: "通知を閉じる",
     zh: "关闭通知",
   };
+  const requiredFieldMessages: Record<LanguageCode, string> = {
+    ar: "يرجى إكمال الحقل المطلوب قبل المتابعة.",
+    en: "Please complete this required field before continuing.",
+    es: "Completa este campo obligatorio para continuar.",
+    fr: "Veuillez remplir ce champ obligatoire pour continuer.",
+    de: "Bitte füllen Sie dieses Pflichtfeld aus, um fortzufahren.",
+    pt: "Preencha este campo obrigatório para continuar.",
+    ja: "続行するには、この必須項目を入力してください。",
+    zh: "请填写此必填字段后继续。",
+  };
+  function handleRequiredFieldInvalid(field: string) {
+    return (event: InvalidEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      event.preventDefault();
+      setInvalidField(field);
+    };
+  }
+
+  function clearInvalidField(field: string) {
+    if (invalidField === field) setInvalidField(null);
+  }
   function normalizeCategoryMatchKey(value: string): string {
     return value
       .normalize("NFKD")
@@ -547,13 +568,13 @@ export default function SubmitOpportunityPage() {
             </div>
           </div>
 
-          <label className="grid gap-2 text-sm font-medium">{copy.name}<input required value={form.title} onChange={(event) => updateField("title", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
-          <label className="grid gap-2 text-sm font-medium">{copy.details}<textarea rows={5} value={form.description} onChange={(event) => updateField("description", event.target.value)} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
-          <label className="grid gap-2 text-sm font-medium">{copy.link}<input required dir="ltr" type="url" value={form.directUrl} onChange={(event) => updateField("directUrl", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal text-left" /></label>
+          <label className="grid gap-2 text-sm font-medium">{copy.name}<input required onInvalid={handleRequiredFieldInvalid("title")} value={form.title} onChange={(event) => { clearInvalidField("title"); updateField("title", event.target.value); }} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" />{invalidField === "title" && <span className="text-xs font-medium text-rose-600">{requiredFieldMessages[language]}</span>}</label>
+          <label className="grid gap-2 text-sm font-medium">{copy.details}<textarea required onInvalid={handleRequiredFieldInvalid("description")} rows={5} value={form.description} onChange={(event) => { clearInvalidField("description"); updateField("description", event.target.value); }} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" />{invalidField === "description" && <span className="text-xs font-medium text-rose-600">{requiredFieldMessages[language]}</span>}</label>
+          <label className="grid gap-2 text-sm font-medium">{copy.link}<input required onInvalid={handleRequiredFieldInvalid("directUrl")} dir="ltr" type="url" value={form.directUrl} onChange={(event) => { clearInvalidField("directUrl"); updateField("directUrl", event.target.value); }} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal text-left" />{invalidField === "directUrl" && <span className="text-xs font-medium text-rose-600">{requiredFieldMessages[language]}</span>}</label>
 
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="grid gap-2 text-sm font-medium">{copy.earnings}<input value={form.earnings} onChange={(event) => updateField("earnings", event.target.value)} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
-            <label className="relative grid gap-2 text-sm font-medium">{copy.category}<div className="flex h-11 items-center rounded-lg border border-zinc-300 bg-white px-1.5 focus-within:border-[#2563eb] focus-within:ring-2 focus-within:ring-blue-100"><input required value={form.category} onChange={(event) => { updateCategory(event.target.value); setCategoryOpen(true); }} onFocus={() => setCategoryOpen(true)} placeholder={copy.categoryPlaceholder} className="min-w-0 flex-1 border-0 bg-transparent px-2 py-2 font-normal outline-none" /><button type="button" aria-label={copy.category} aria-expanded={categoryOpen} onClick={() => setCategoryOpen((current) => !current)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-50 text-zinc-500 transition hover:bg-blue-50 hover:text-[#2563eb]"><span className={`h-2.5 w-2.5 rotate-45 border-b-2 border-r-2 border-current transition-transform ${categoryOpen ? "-translate-y-0.5 rotate-[225deg]" : "-translate-y-0.5"}`} /></button></div>{categoryOpen && filteredCategoryOptions.length > 0 && <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-48 overflow-y-auto rounded-lg border border-zinc-200 bg-white p-1 shadow-lg">{filteredCategoryOptions.map((category) => <button key={category.id} type="button" onMouseDown={(event) => { event.preventDefault(); chooseCategory(category); }} className="block w-full rounded-md px-3 py-2 text-left text-sm font-normal text-zinc-700 hover:bg-blue-50">{category.label}</button>)}</div>}</label>
+            <label className="relative grid gap-2 text-sm font-medium">{copy.category}<div className="flex h-11 items-center rounded-lg border border-zinc-300 bg-white px-1.5 focus-within:border-[#2563eb] focus-within:ring-2 focus-within:ring-blue-100"><input required onInvalid={handleRequiredFieldInvalid("category")} value={form.category} onChange={(event) => { clearInvalidField("category"); updateCategory(event.target.value); setCategoryOpen(true); }} onFocus={() => setCategoryOpen(true)} placeholder={copy.categoryPlaceholder} className="min-w-0 flex-1 border-0 bg-transparent px-2 py-2 font-normal outline-none" /><button type="button" aria-label={copy.category} aria-expanded={categoryOpen} onClick={() => setCategoryOpen((current) => !current)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-50 text-zinc-500 transition hover:bg-blue-50 hover:text-[#2563eb]"><span className={`h-2.5 w-2.5 rotate-45 border-b-2 border-r-2 border-current transition-transform ${categoryOpen ? "-translate-y-0.5 rotate-[225deg]" : "-translate-y-0.5"}`} /></button></div>{invalidField === "category" && <span className="text-xs font-medium text-rose-600">{requiredFieldMessages[language]}</span>}{categoryOpen && filteredCategoryOptions.length > 0 && <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-48 overflow-y-auto rounded-lg border border-zinc-200 bg-white p-1 shadow-lg">{filteredCategoryOptions.map((category) => <button key={category.id} type="button" onMouseDown={(event) => { event.preventDefault(); chooseCategory(category); }} className="block w-full rounded-md px-3 py-2 text-left text-sm font-normal text-zinc-700 hover:bg-blue-50">{category.label}</button>)}</div>}</label>
             <label className="grid gap-2 text-sm font-medium">{copy.countries}<input value={form.countries} onChange={(event) => updateField("countries", event.target.value)} placeholder={copy.optional} className="h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
             <label className="grid gap-2 text-sm font-medium">{copy.devices}<SuggestionInput value={form.devices} options={deviceOptions} placeholder={copy.optional} listLabel={copy.devices} onChange={(value) => updateField("devices", value)} /></label>
             <label className="grid gap-2 text-sm font-medium">{copy.paymentMethods}<SuggestionInput value={form.paymentMethods} options={paymentMethodOptions} placeholder={copy.optional} listLabel={copy.paymentMethods} onChange={(value) => updateField("paymentMethods", value)} /></label>
