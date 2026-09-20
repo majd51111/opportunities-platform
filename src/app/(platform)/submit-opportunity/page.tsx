@@ -470,7 +470,6 @@ export default function SubmitOpportunityPage() {
           <div className="rounded-xl border border-dashed border-blue-200 bg-blue-50/40 p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-blue-900">{copy.aiTitle}</p>
-              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-blue-700">{copy.aiBadge}</span>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <input
