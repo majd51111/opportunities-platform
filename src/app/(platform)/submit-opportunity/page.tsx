@@ -211,6 +211,11 @@ export default function SubmitOpportunityPage() {
     toastTimerRef.current = window.setTimeout(() => setToastMessage(""), 4000);
   }
 
+  function notify(nextMessage: string) {
+    setMessage(nextMessage);
+    showToast(nextMessage);
+  }
+
   useEffect(() => () => {
     if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
   }, []);
@@ -288,7 +293,7 @@ export default function SubmitOpportunityPage() {
   async function handleImportFromUrl() {
     const trimmedUrl = importUrl.trim();
     if (!trimmedUrl) {
-      setMessage(copy.aiMissingUrl);
+      notify(copy.aiMissingUrl);
       return;
     }
 
@@ -298,7 +303,7 @@ export default function SubmitOpportunityPage() {
         throw new Error();
       }
     } catch {
-      setMessage(copy.aiInvalidUrl);
+      notify(copy.aiInvalidUrl);
       return;
     }
 
@@ -330,7 +335,7 @@ export default function SubmitOpportunityPage() {
       };
 
       if (!response.ok || !payload.accepted) {
-        setMessage(payload.reasonCode === "duplicate" ? copy.aiDuplicate : copy.aiError);
+        notify(payload.reasonCode === "duplicate" ? copy.aiDuplicate : copy.aiError);
         setImportingUrl(false);
         return;
       }
@@ -359,7 +364,7 @@ export default function SubmitOpportunityPage() {
       setMessage(copy.aiSuccess);
       showToast(copy.aiSuccess);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : copy.aiError);
+      notify(error instanceof Error ? error.message : copy.aiError);
     } finally {
       setImportingUrl(false);
     }
@@ -370,7 +375,7 @@ export default function SubmitOpportunityPage() {
     setMessage("");
 
     if (!form.category.trim()) {
-      setMessage(copy.categoryRequired);
+      notify(copy.categoryRequired);
       return;
     }
 
@@ -379,14 +384,14 @@ export default function SubmitOpportunityPage() {
       directUrl = new URL(form.directUrl.trim());
       if (!['http:', 'https:'].includes(directUrl.protocol)) throw new Error();
     } catch {
-      setMessage(copy.invalidUrl);
+      notify(copy.invalidUrl);
       return;
     }
 
     const supabase = getSupabaseBrowserClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      setMessage(copy.loginRequired);
+      notify(copy.loginRequired);
       return;
     }
 
@@ -432,7 +437,7 @@ export default function SubmitOpportunityPage() {
         });
         if (error || !opportunityId) {
           setSaving(false);
-          setMessage(`${copy.error} ${error?.message ?? "Opportunity could not be created."}`);
+          notify(`${copy.error} ${error?.message ?? "Opportunity could not be created."}`);
           return;
         }
 
@@ -453,29 +458,28 @@ export default function SubmitOpportunityPage() {
         });
         if (translationSaveError) {
           setSaving(false);
-          setMessage(`${copy.success} لكن تعذر حفظ الترجمات: ${translationSaveError.message}`);
+          notify(`${copy.success} لكن تعذر حفظ الترجمات: ${translationSaveError.message}`);
           setForm(emptyForm);
           setCategoryId("");
           return;
         }
       } else {
         setSaving(false);
-        setMessage(`${copy.success} لكن تعذر إنشاء الترجمات: ${String((translationPayload as { error?: string }).error ?? "Translation provider error")}`);
+        notify(`${copy.success} لكن تعذر إنشاء الترجمات: ${String((translationPayload as { error?: string }).error ?? "Translation provider error")}`);
         setForm(emptyForm);
         setCategoryId("");
         return;
       }
     } catch (translationError) {
       setSaving(false);
-      setMessage(`${copy.success} لكن حدث خطأ أثناء الترجمة: ${translationError instanceof Error ? translationError.message : "Unknown error"}`);
+      notify(`${copy.success} لكن حدث خطأ أثناء الترجمة: ${translationError instanceof Error ? translationError.message : "Unknown error"}`);
       setForm(emptyForm);
       setCategoryId("");
       return;
     }
 
     setSaving(false);
-    setMessage(copy.success);
-    showToast(copy.success);
+    notify(copy.success);
     setForm(emptyForm);
     setCategoryId("");
   }

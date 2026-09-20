@@ -342,9 +342,17 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                       rel="noopener noreferrer"
                       onClick={async (event) => {
                         event.preventDefault();
-                        if (!await requireLogin()) return;
+                        const newWindow = window.open("about:blank", "_blank");
+                        if (!await requireLogin()) {
+                          newWindow?.close();
+                          return;
+                        }
                         void recordOpportunityStart(opportunity.id);
-                        window.open(startUrl, "_blank", "noopener,noreferrer");
+                        if (newWindow) {
+                          newWindow.location.href = startUrl;
+                        } else {
+                          window.location.href = startUrl;
+                        }
                       }}
                       className="inline-flex min-h-10 items-center justify-center rounded-lg bg-[#2563eb] px-4 py-2 text-sm font-medium text-white"
                     >
