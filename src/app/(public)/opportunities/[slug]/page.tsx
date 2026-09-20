@@ -43,7 +43,7 @@ export default function OpportunityDetailsPage() {
       let opportunityQuery = supabase
         .from("opportunities")
         .select(
-          "id, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id"
+          "id, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id, category:categories(id, name)"
         )
         .in("status", canReviewPending ? ["pending", "published"] : ["published"]);
 
@@ -60,7 +60,7 @@ export default function OpportunityDetailsPage() {
           const fallback = await supabase
             .from("opportunities")
             .select(
-              "id, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id"
+              "id, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id, category:categories(id, name)"
             )
             .in("status", canReviewPending ? ["pending", "published"] : ["published"])
             .eq("id", Number(prefixedId[1]))
@@ -108,6 +108,7 @@ export default function OpportunityDetailsPage() {
         devices: localized?.devices?.length ? localized.devices : english?.devices?.length ? english.devices : data.devices,
         payment_methods: localized?.payment_methods?.length ? localized.payment_methods : english?.payment_methods?.length ? english.payment_methods : data.payment_methods,
         requirements: localized?.requirements?.length ? localized.requirements : english?.requirements?.length ? english.requirements : data.requirements,
+        category: data.category,
       });
       setLoading(false);
     }
@@ -302,6 +303,12 @@ export default function OpportunityDetailsPage() {
           </p>
         )}
 
+        {opportunity.short_description && opportunity.short_description !== opportunity.description && (
+          <p className="mt-5 text-lg leading-8 text-zinc-700">
+            {getLocalizedText(opportunity.short_description, language, "en") ?? opportunity.short_description}
+          </p>
+        )}
+
         {opportunity.description && (
           <div className="mt-8">
             <h2 className="text-xl font-semibold">{t.detailPage.details}</h2>
@@ -363,6 +370,12 @@ export default function OpportunityDetailsPage() {
         {opportunity.verification_status && (
           <p className={`mt-8 inline-flex rounded-full px-3 py-1 text-sm ${isVerifiedOpportunity(opportunity.verification_status) ? "bg-green-100 font-semibold text-green-700" : "text-zinc-500"}`}>
             {t.detailPage.verification}: {localizeVerification(opportunity.verification_status, language) ?? opportunity.verification_status}
+          </p>
+        )}
+
+        {opportunity.direct_url && (
+          <p className="mt-6 break-all text-sm text-zinc-500">
+            {language === "ar" ? "رابط الفرصة" : "Opportunity link"}: {opportunity.direct_url}
           </p>
         )}
 
