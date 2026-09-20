@@ -329,6 +329,26 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                 )}
 
                 <h2 className="min-h-32 pt-24 text-xl font-semibold leading-7">{title}</h2>
+                {category && <p className="mt-2 text-sm font-medium text-black">{t.detailPage.category}: <span className="text-red-600">{localizeCategory(category.name, languageKey) ?? category.name}</span></p>}
+
+                {localizedEarnings && (
+                  <p className="mt-2 text-sm font-medium text-zinc-700">
+                    {t.opportunitiesPage.earnings}: <span className="text-blue-700">{localizedEarnings}</span>
+                  </p>
+                )}
+
+                {deviceList && (
+                  <p className="mt-2 text-sm font-medium text-zinc-700">
+                    {t.opportunitiesPage.devices}: <span className="text-blue-700">{deviceList}</span>
+                  </p>
+                )}
+
+                {localizedVerification && (
+                  <p className="mt-2 text-sm font-medium text-zinc-700">
+                    {t.opportunitiesPage.verification}: <span className="text-green-600">{localizedVerification}</span>
+                  </p>
+                )}
+
                 <div className="mt-auto flex flex-wrap gap-3 pt-5">
                   {startUrl && (
                     <a
@@ -357,26 +377,6 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                     {t.opportunitiesPage.viewOpportunity}
                   </button>
                 </div>
-
-                {category && <p className="mt-2 text-sm font-medium text-black">{t.detailPage.category}: <span className="text-red-600">{localizeCategory(category.name, languageKey) ?? category.name}</span></p>}
-
-                {localizedEarnings && (
-                  <p className="mt-2 text-sm font-medium text-zinc-700">
-                    {t.opportunitiesPage.earnings}: <span className="text-blue-700">{localizedEarnings}</span>
-                  </p>
-                )}
-
-                {deviceList && (
-                  <p className="mt-2 text-sm font-medium text-zinc-700">
-                    {t.opportunitiesPage.devices}: <span className="text-blue-700">{deviceList}</span>
-                  </p>
-                )}
-
-                {localizedVerification && (
-                  <p className="mt-2 text-sm font-medium text-zinc-700">
-                    {t.opportunitiesPage.verification}: <span className="text-green-600">{localizedVerification}</span>
-                  </p>
-                )}
 
                 {canDelete && (
                   <div className="mt-4 flex flex-wrap gap-3">
