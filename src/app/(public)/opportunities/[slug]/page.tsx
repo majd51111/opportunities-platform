@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useLanguage } from "@/providers/app-providers";
 import type { LanguageCode } from "@/languages";
 import type { Opportunity } from "@/types";
-import { getLocalizedText, getOpportunityStartUrl, joinLocalizedOpportunityList, localizeCountry, localizePaymentMethod, localizeRequirement, normalizeOpportunityCategory, localizeDevice, localizeVerification, isVerifiedOpportunity } from "@/types";
+import { getLocalizedText, getOpportunityStartUrl, joinLocalizedOpportunityList, localizeCategory, localizeCountry, localizePaymentMethod, localizeRequirement, normalizeOpportunityCategory, localizeDevice, localizeVerification, isVerifiedOpportunity } from "@/types";
 
 export default function OpportunityDetailsPage() {
   const { t, dir, language } = useLanguage();
@@ -201,7 +201,7 @@ export default function OpportunityDetailsPage() {
     : [];
   const localizedEarnings = getLocalizedText(opportunity.earnings_text, language, "en") ?? opportunity.earnings_text;
   const requirementsList = joinLocalizedOpportunityList(opportunity.requirements, language, localizeRequirement);
-  const categoryName = category ? getLocalizedText(category.name, language, "en") ?? category.name : "";
+  const categoryName = category ? localizeCategory(category.name, language) ?? getLocalizedText(category.name, language, "en") ?? category.name : "";
   const unavailableLabel = language === "ar" ? "غير محدد" : "Not specified";
 
   return (
