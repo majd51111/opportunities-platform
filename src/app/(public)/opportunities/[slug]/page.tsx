@@ -43,7 +43,7 @@ export default function OpportunityDetailsPage() {
       let opportunityQuery = supabase
         .from("opportunities")
         .select(
-          "id, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id, category:categories(id, name)"
+          "id, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id"
         )
         .in("status", canReviewPending ? ["pending", "published"] : ["published"]);
 
@@ -60,7 +60,7 @@ export default function OpportunityDetailsPage() {
           const fallback = await supabase
             .from("opportunities")
             .select(
-              "id, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id, category:categories(id, name)"
+              "id, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id"
             )
             .in("status", canReviewPending ? ["pending", "published"] : ["published"])
             .eq("id", Number(prefixedId[1]))
@@ -83,6 +83,10 @@ export default function OpportunityDetailsPage() {
         return;
       }
 
+      const { data: category } = data.category_id
+        ? await supabase.from("categories").select("id, name").eq("id", data.category_id).maybeSingle()
+        : { data: null };
+
       const { data: translations } = await supabase
         .from("opportunity_translations")
         .select("language_code, title, short_description, description, earnings_text, countries, devices, payment_methods, requirements")
@@ -98,6 +102,7 @@ export default function OpportunityDetailsPage() {
       const english = translationMap.get("en");
       setOpportunity({
         ...data,
+        category: category ?? null,
         title: localized?.title || english?.title || data.title,
         short_description:
           localized?.short_description || localized?.description ||
@@ -108,7 +113,6 @@ export default function OpportunityDetailsPage() {
         devices: localized?.devices?.length ? localized.devices : english?.devices?.length ? english.devices : data.devices,
         payment_methods: localized?.payment_methods?.length ? localized.payment_methods : english?.payment_methods?.length ? english.payment_methods : data.payment_methods,
         requirements: localized?.requirements?.length ? localized.requirements : english?.requirements?.length ? english.requirements : data.requirements,
-        category: data.category,
       });
       setLoading(false);
     }
