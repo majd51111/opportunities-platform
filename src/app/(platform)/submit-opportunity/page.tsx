@@ -21,6 +21,8 @@ type OpportunityForm = {
   requirements: string;
 };
 
+type ToastKind = "success" | "error";
+
 const emptyForm: OpportunityForm = {
   title: "",
   description: "",
@@ -196,6 +198,7 @@ export default function SubmitOpportunityPage() {
   const [form, setForm] = useState<OpportunityForm>(emptyForm);
   const [message, setMessage] = useState("");
   const [toastMessage, setToastMessage] = useState("");
+  const [toastKind, setToastKind] = useState<ToastKind>("success");
   const toastTimerRef = useRef<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [importingUrl, setImportingUrl] = useState(false);
@@ -205,15 +208,16 @@ export default function SubmitOpportunityPage() {
   const [categoryOpen, setCategoryOpen] = useState(false);
 
   const copy = getPageCopy(language).submit;
-  function showToast(nextMessage: string) {
+  function showToast(nextMessage: string, kind: ToastKind = "error") {
     setToastMessage(nextMessage);
+    setToastKind(kind);
     if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
     toastTimerRef.current = window.setTimeout(() => setToastMessage(""), 4000);
   }
 
-  function notify(nextMessage: string) {
+  function notify(nextMessage: string, kind: ToastKind = "error") {
     setMessage(nextMessage);
-    showToast(nextMessage);
+    showToast(nextMessage, kind);
   }
 
   useEffect(() => () => {
@@ -254,6 +258,16 @@ export default function SubmitOpportunityPage() {
     { value: "Payoneer", label: t.profilePage.payoneer },
     { value: "Cryptocurrency", label: t.profilePage.cryptocurrency },
   ];
+  const toastCloseLabels: Record<LanguageCode, string> = {
+    ar: "إغلاق الإشعار",
+    en: "Close notification",
+    es: "Cerrar notificación",
+    fr: "Fermer la notification",
+    de: "Benachrichtigung schließen",
+    pt: "Fechar notificação",
+    ja: "通知を閉じる",
+    zh: "关闭通知",
+  };
   function normalizeCategoryMatchKey(value: string): string {
     return value
       .normalize("NFKD")
@@ -361,8 +375,7 @@ export default function SubmitOpportunityPage() {
       }
 
       setImportUrl("");
-      setMessage(copy.aiSuccess);
-      showToast(copy.aiSuccess);
+      notify(copy.aiSuccess, "success");
     } catch (error) {
       notify(error instanceof Error ? error.message : copy.aiError);
     } finally {
@@ -479,7 +492,7 @@ export default function SubmitOpportunityPage() {
     }
 
     setSaving(false);
-    notify(copy.success);
+    notify(copy.success, "success");
     setForm(emptyForm);
     setCategoryId("");
   }
@@ -488,11 +501,22 @@ export default function SubmitOpportunityPage() {
     <main dir={dir} className="mx-auto w-full max-w-3xl px-6 py-12">
       {toastMessage && (
         <div
-          role="status"
+          role={toastKind === "error" ? "alert" : "status"}
           aria-live="polite"
-          className="fixed inset-x-4 top-4 z-50 mx-auto max-w-xl rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-center text-sm font-medium text-green-800 shadow-lg"
+          className={`fixed inset-x-4 top-4 z-50 mx-auto flex max-w-xl items-start gap-3 rounded-2xl border px-4 py-3 text-sm font-medium shadow-[0_16px_36px_rgba(24,39,75,0.18)] backdrop-blur-sm transition-all ${toastKind === "success" ? "border-emerald-200 bg-emerald-50/95 text-emerald-900" : "border-rose-200 bg-rose-50/95 text-rose-900"}`}
         >
-          {toastMessage}
+          <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${toastKind === "success" ? "bg-emerald-600 text-white" : "bg-rose-600 text-white"}`} aria-hidden="true">
+            {toastKind === "success" ? "✓" : "!"}
+          </span>
+          <span className="flex-1 pt-1 text-start leading-6">{toastMessage}</span>
+          <button
+            type="button"
+            onClick={() => setToastMessage("")}
+            aria-label={toastCloseLabels[language]}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-lg leading-none opacity-60 transition hover:bg-black/5 hover:opacity-100"
+          >
+            ×
+          </button>
         </div>
       )}
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
