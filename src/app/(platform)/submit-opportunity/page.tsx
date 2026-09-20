@@ -195,6 +195,8 @@ export default function SubmitOpportunityPage() {
   const { dir, language, t } = useLanguage();
   const [form, setForm] = useState<OpportunityForm>(emptyForm);
   const [message, setMessage] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
+  const toastTimerRef = useRef<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [importingUrl, setImportingUrl] = useState(false);
   const [importUrl, setImportUrl] = useState("");
@@ -203,6 +205,16 @@ export default function SubmitOpportunityPage() {
   const [categoryOpen, setCategoryOpen] = useState(false);
 
   const copy = getPageCopy(language).submit;
+  function showToast(nextMessage: string) {
+    setToastMessage(nextMessage);
+    if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = window.setTimeout(() => setToastMessage(""), 4000);
+  }
+
+  useEffect(() => () => {
+    if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
+  }, []);
+
   useEffect(() => {
     async function loadCategories() {
       const { data } = await getSupabaseBrowserClient()
@@ -345,6 +357,7 @@ export default function SubmitOpportunityPage() {
 
       setImportUrl("");
       setMessage(copy.aiSuccess);
+      showToast(copy.aiSuccess);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : copy.aiError);
     } finally {
@@ -462,12 +475,22 @@ export default function SubmitOpportunityPage() {
 
     setSaving(false);
     setMessage(copy.success);
+    showToast(copy.success);
     setForm(emptyForm);
     setCategoryId("");
   }
 
   return (
     <main dir={dir} className="mx-auto w-full max-w-3xl px-6 py-12">
+      {toastMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed inset-x-4 top-4 z-50 mx-auto max-w-xl rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-center text-sm font-medium text-green-800 shadow-lg"
+        >
+          {toastMessage}
+        </div>
+      )}
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
         <h1 className="text-3xl font-bold">{copy.title}</h1>
         <p className="mt-2 text-zinc-500">{copy.description}</p>
