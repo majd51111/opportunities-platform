@@ -66,10 +66,10 @@ export default function OpportunitiesPage() {
       const [{ data, error }, { data: categoryData }] = await Promise.all([supabase
         .from("opportunities")
         .select(
-          "id, created_at, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id, category:categories(id, name)"
+          "id, created_at, title, slug, short_description, description, status, verification_status, earnings_text, countries, devices, payment_methods, requirements, image_url, direct_url, category_id, category:categories(id, name, translations)"
         )
         .eq("status", "published")
-        .order("created_at", { ascending: false }), supabase.from("categories").select("id, name").order("id", { ascending: true })]);
+        .order("created_at", { ascending: false }), supabase.from("categories").select("id, name, translations").order("id", { ascending: true })]);
       setCategories(categoryData ?? []);
         const { data: translations, error: translationsError } = await supabase
   .from("opportunity_translations")
@@ -363,7 +363,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
                   </button>
                 </div>
 
-                {category && <p className="mt-2 text-sm font-medium text-black">{t.detailPage.category}: <span className="text-red-600">{localizeCategory(category.name, languageKey) ?? category.name}</span></p>}
+                {category && <p className="mt-2 text-sm font-medium text-black">{t.detailPage.category}: <span className="text-red-600">{localizeCategory(category, languageKey) ?? category.name}</span></p>}
 
                 {localizedEarnings && (
                   <p className="mt-2 text-sm font-medium text-zinc-700">
@@ -407,7 +407,7 @@ const localizedVerification = localizeVerification(opportunity.verification_stat
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-2 text-sm font-medium">{fieldCopy.name}<input value={editForm.title} onChange={(event) => setEditForm({ ...editForm, title: event.target.value })} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
-              <label className="grid gap-2 text-sm font-medium">{fieldCopy.category}<select value={editForm.category_id} onChange={(event) => setEditForm({ ...editForm, category_id: event.target.value })} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal"><option value="">{fieldCopy.categoryPlaceholder}</option>{categories.map((category) => <option key={category.id} value={category.id}>{localizeCategory(category.name, languageKey) ?? getLocalizedText(category.name, languageKey, "en") ?? ""}</option>)}</select></label>
+              <label className="grid gap-2 text-sm font-medium">{fieldCopy.category}<select value={editForm.category_id} onChange={(event) => setEditForm({ ...editForm, category_id: event.target.value })} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal"><option value="">{fieldCopy.categoryPlaceholder}</option>{categories.map((category) => <option key={category.id} value={category.id}>{localizeCategory(category, languageKey) ?? getLocalizedText(category.name, languageKey, "en") ?? ""}</option>)}</select></label>
               <label className="grid gap-2 text-sm font-medium sm:col-span-2">{fieldCopy.details}<textarea rows={5} value={editForm.description} onChange={(event) => setEditForm({ ...editForm, description: event.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>
               <label className="grid gap-2 text-sm font-medium sm:col-span-2">{fieldCopy.link}<input dir="ltr" value={editForm.direct_url} onChange={(event) => setEditForm({ ...editForm, direct_url: event.target.value })} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal text-left" /></label>
               <label className="grid gap-2 text-sm font-medium">{fieldCopy.earnings}<input value={editForm.earnings_text} onChange={(event) => setEditForm({ ...editForm, earnings_text: event.target.value })} className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 font-normal" /></label>

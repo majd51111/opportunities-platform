@@ -54,7 +54,7 @@ useEffect(() => {
     let request = supabase
     .from("opportunities")
     .select(
-      "id, title, slug, short_description, description, earnings_text, verification_status, devices, countries, payment_methods, requirements, direct_url, category:categories(id, name)"
+      "id, title, slug, short_description, description, earnings_text, verification_status, devices, countries, payment_methods, requirements, direct_url, category:categories(id, name, translations)"
     )
     .eq("status", "published");
   

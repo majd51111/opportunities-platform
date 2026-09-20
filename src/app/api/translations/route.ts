@@ -7,6 +7,7 @@ const TRANSLATION_PROVIDER_TIMEOUT_MS = 45_000;
 type SupportedLanguage = (typeof supportedLanguages)[number];
 
 type TranslationInput = {
+  category?: string | null;
   title: string;
   shortDescription: string;
   description: string;
@@ -25,6 +26,7 @@ const translationResponseSchema = {
     supportedLanguages.map((language) => [language, {
       type: "OBJECT",
       properties: {
+        category: { type: "STRING", nullable: true },
         title: { type: "STRING" },
         shortDescription: { type: "STRING" },
         description: { type: "STRING" },
@@ -46,7 +48,8 @@ function isTranslationOutput(value: unknown): value is TranslationOutput {
     const item = (value as Record<string, unknown>)[language];
     if (!item || typeof item !== "object") return false;
     const record = item as Record<string, unknown>;
-    return typeof record.title === "string"
+    return (record.category === undefined || record.category === null || typeof record.category === "string")
+      && typeof record.title === "string"
       && typeof record.shortDescription === "string"
       && typeof record.description === "string"
       && (record.earningsText === null || typeof record.earningsText === "string")
@@ -153,7 +156,7 @@ export async function POST(request: Request) {
           parts: [{
             text: [
               "Translate opportunity listing content naturally and accurately.",
-              "Return only valid JSON with language keys and fields title, shortDescription, description, earningsText, countries, devices, paymentMethods, requirements.",
+              "Return only valid JSON with language keys and fields category, title, shortDescription, description, earningsText, countries, devices, paymentMethods, requirements.",
               "Preserve URLs, numbers, product names, and meaning. Use null for a missing earningsText.",
               JSON.stringify({
             targetLanguages: Object.fromEntries(supportedLanguages.map((language) => [language, languageNames[language]])),

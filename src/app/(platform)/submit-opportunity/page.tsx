@@ -207,7 +207,7 @@ export default function SubmitOpportunityPage() {
     async function loadCategories() {
       const { data } = await getSupabaseBrowserClient()
         .from("categories")
-        .select("id, name")
+        .select("id, name, translations")
         .order("id", { ascending: true });
       setCategories(data ?? []);
     }
@@ -250,7 +250,7 @@ export default function SubmitOpportunityPage() {
 
   const categoryOptions = categories.map((category) => ({
     id: String(category.id),
-    label: localizeCategory(category.name, language) ?? String(category.name ?? ""),
+    label: localizeCategory(category, language) ?? String(category.name ?? ""),
   }));
   const filteredCategoryOptions = categoryOptions.filter((category) =>
     normalizeCategoryMatchKey(category.label).includes(normalizeCategoryMatchKey(form.category.trim())),
@@ -378,31 +378,12 @@ export default function SubmitOpportunityPage() {
     }
 
     setSaving(true);
-    const { data: opportunityId, error } = await supabase.rpc("submit_opportunity", {
-      p_title: form.title.trim(),
-      p_slug: createSlug(form.title),
-      p_short_description: null,
-      p_description: form.description.trim(),
-      p_direct_url: directUrl.toString(),
-      p_earnings_text: form.earnings.trim() || null,
-      p_category_id: categoryId ? Number(categoryId) : null,
-      p_countries: toList(form.countries),
-      p_devices: toList(form.devices),
-      p_payment_methods: toList(form.paymentMethods),
-      p_requirements: toList(form.requirements),
-      p_category_name: form.category.trim() || null,
-    });
-    if (error) {
-      setSaving(false);
-      setMessage(`${copy.error} ${error.message}`);
-      return;
-    }
-
     try {
       const translationResponse = await fetch("/api/translations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          category: form.category.trim(),
           title: form.title.trim(),
           shortDescription: "",
           description: form.description.trim(),
@@ -414,10 +395,34 @@ export default function SubmitOpportunityPage() {
         }),
       });
       const translationPayload = await translationResponse.json() as {
-        translations?: Record<string, { title: string; shortDescription: string; description: string; earningsText: string | null; countries: string[]; devices: string[]; paymentMethods: string[]; requirements: string[] }>;
+        translations?: Record<string, { category: string; title: string; shortDescription: string; description: string; earningsText: string | null; countries: string[]; devices: string[]; paymentMethods: string[]; requirements: string[] }>;
       };
 
       if (translationResponse.ok && translationPayload.translations) {
+        const categoryTranslations = Object.fromEntries(
+          Object.entries(translationPayload.translations).map(([languageCode, translation]) => [languageCode, translation.category]),
+        );
+        const { data: opportunityId, error } = await supabase.rpc("submit_opportunity", {
+          p_title: form.title.trim(),
+          p_slug: createSlug(form.title),
+          p_short_description: null,
+          p_description: form.description.trim(),
+          p_direct_url: directUrl.toString(),
+          p_earnings_text: form.earnings.trim() || null,
+          p_category_id: categoryId ? Number(categoryId) : null,
+          p_countries: toList(form.countries),
+          p_devices: toList(form.devices),
+          p_payment_methods: toList(form.paymentMethods),
+          p_requirements: toList(form.requirements),
+          p_category_name: form.category.trim() || null,
+          p_category_translations: categoryTranslations,
+        });
+        if (error || !opportunityId) {
+          setSaving(false);
+          setMessage(`${copy.error} ${error?.message ?? "Opportunity could not be created."}`);
+          return;
+        }
+
         const translationRows = Object.entries(translationPayload.translations).map(([languageCode, translation]) => ({
           language_code: languageCode,
           title: translation.title,

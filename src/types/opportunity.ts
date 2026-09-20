@@ -463,7 +463,9 @@ function normalizeCategoryKey(value: string): string {
 }
 
 export function localizeCategory(value: unknown, language: LanguageCode = "en"): string | null {
-  const text = getLocalizedText(value, language, "en");
+  const record = value && typeof value === "object" ? value as Record<string, unknown> : null;
+  const text = getLocalizedText(record?.translations ?? value, language, "en")
+    ?? getLocalizedText(record?.name ?? value, language, "en");
   if (!text) return null;
 
   const normalizedText = normalizeCategoryKey(text);

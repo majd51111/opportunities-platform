@@ -84,7 +84,7 @@ export default function OpportunityDetailsPage() {
       }
 
       const { data: category } = data.category_id
-        ? await supabase.from("categories").select("id, name").eq("id", data.category_id).maybeSingle()
+        ? await supabase.from("categories").select("id, name, translations").eq("id", data.category_id).maybeSingle()
         : { data: null };
 
       const { data: translations } = await supabase
@@ -201,7 +201,7 @@ export default function OpportunityDetailsPage() {
     : [];
   const localizedEarnings = getLocalizedText(opportunity.earnings_text, language, "en") ?? opportunity.earnings_text;
   const requirementsList = joinLocalizedOpportunityList(opportunity.requirements, language, localizeRequirement);
-  const categoryName = category ? localizeCategory(category.name, language) ?? getLocalizedText(category.name, language, "en") ?? category.name : "";
+  const categoryName = category ? localizeCategory(category, language) ?? getLocalizedText(category.name, language, "en") ?? category.name : "";
   const unavailableLabel = language === "ar" ? "غير محدد" : "Not specified";
 
   return (

@@ -57,7 +57,7 @@ export default function AdminOpportunitiesPage() {
     const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
     if (!role || !["admin", "support"].includes(role.role)) { setMessage(copy.access); setLoading(false); return; }
     const [{ data, error }, { data: categoryData }, { data: allOpportunityData }] = await Promise.all([
-      supabase.from("opportunities").select("id, title, slug, short_description, description, direct_url, earnings_text, countries, devices, payment_methods, requirements, status, category_id, category:categories(id, name)").eq("status", "pending").order("created_at", { ascending: true }),
+      supabase.from("opportunities").select("id, title, slug, short_description, description, direct_url, earnings_text, countries, devices, payment_methods, requirements, status, category_id, category:categories(id, name, translations)").eq("status", "pending").order("created_at", { ascending: true }),
       supabase.from("categories").select("id, name").order("id", { ascending: true }),
       supabase.from("opportunities").select("id, title, slug, short_description, description, direct_url, earnings_text, countries, devices, payment_methods, requirements, status, category_id").in("status", ["pending", "published"]).order("created_at", { ascending: true }),
     ]);
