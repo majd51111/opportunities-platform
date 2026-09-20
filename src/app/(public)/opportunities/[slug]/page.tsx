@@ -202,6 +202,7 @@ export default function OpportunityDetailsPage() {
   const localizedEarnings = getLocalizedText(opportunity.earnings_text, language, "en") ?? opportunity.earnings_text;
   const requirementsList = joinLocalizedOpportunityList(opportunity.requirements, language, localizeRequirement);
   const categoryName = category ? getLocalizedText(category.name, language, "en") ?? category.name : "";
+  const unavailableLabel = language === "ar" ? "غير محدد" : "Not specified";
 
   return (
     <main dir={dir} className="mx-auto w-full max-w-4xl px-6 py-12">
@@ -323,53 +324,38 @@ export default function OpportunityDetailsPage() {
           </div>
         )}
 
-        {localizedEarnings && (
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold">{t.detailPage.earnings}</h2>
-            <p className="mt-2 text-zinc-600">
-              {localizedEarnings}
-            </p>
-          </div>
-        )}
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold">{t.detailPage.earnings}</h2>
+          <p className="mt-2 text-zinc-600">{localizedEarnings || unavailableLabel}</p>
+        </div>
 
-        {deviceList && (
-          <div className="mt-6">
-            <h2 className="text-lg font-semibold">{t.detailPage.devices}</h2>
-            <p className="mt-2 text-zinc-600">{deviceList}</p>
-          </div>
-        )}
+        <div className="mt-6">
+          <h2 className="text-lg font-semibold">{t.detailPage.devices}</h2>
+          <p className="mt-2 text-zinc-600">{deviceList || unavailableLabel}</p>
+        </div>
 
-        {countryList && (
-          <div className="mt-6">
-            <h2 className="text-lg font-semibold">{t.detailPage.countries}</h2>
-            <p className="mt-2 text-zinc-600">{countryList}</p>
-          </div>
-        )}
+        <div className="mt-6">
+          <h2 className="text-lg font-semibold">{t.detailPage.countries}</h2>
+          <p className="mt-2 text-zinc-600">{countryList || unavailableLabel}</p>
+        </div>
 
-        {paymentList && (
-          <div className="mt-6">
-            <h2 className="text-lg font-semibold">{t.detailPage.paymentMethods}</h2>
+        <div className="mt-6">
+          <h2 className="text-lg font-semibold">{t.detailPage.paymentMethods}</h2>
+          {paymentMethods.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-2">
               {paymentMethods.map((paymentMethod) => (
-                <span
-                  key={paymentMethod}
-                  className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700"
-                >
+                <span key={paymentMethod} className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700">
                   {paymentMethod}
                 </span>
               ))}
             </div>
-          </div>
-        )}
+          ) : <p className="mt-2 text-zinc-600">{unavailableLabel}</p>}
+        </div>
 
-        {requirementsList && (
-            <div className="mt-6">
-              <h2 className="text-lg font-semibold">{t.detailPage.requirements}</h2>
-              <ul className="mt-2 list-disc space-y-1 pr-6 text-zinc-600">
-                <li>{requirementsList}</li>
-              </ul>
-            </div>
-          )}
+        <div className="mt-6">
+          <h2 className="text-lg font-semibold">{t.detailPage.requirements}</h2>
+          <p className="mt-2 text-zinc-600">{requirementsList || unavailableLabel}</p>
+        </div>
 
         {opportunity.verification_status && (
           <p className={`mt-8 inline-flex rounded-full px-3 py-1 text-sm ${isVerifiedOpportunity(opportunity.verification_status) ? "bg-green-100 font-semibold text-green-700" : "text-zinc-500"}`}>
