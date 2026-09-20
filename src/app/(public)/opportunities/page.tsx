@@ -262,8 +262,11 @@ setOpportunities(localizedOpportunities);
           {opportunities.map((opportunity) => {
             const category = normalizeOpportunityCategory(opportunity.category, languageKey);
             const title = getLocalizedText(opportunity.title, languageKey, "en") ?? "Opportunity";
+            const isProlificOpportunity = opportunity.direct_url?.includes("prolific.com") ?? false;
 const deviceList =
-  (localizeDevice(opportunity.devices, languageKey) ?? "");
+  (localizeDevice(opportunity.devices, languageKey) ?? (isProlificOpportunity
+    ? languageKey === "ar" ? "كمبيوتر، آيفون، أندرويد" : "Computer, iPhone, Android"
+    : ""));
 
             
 
@@ -272,7 +275,9 @@ const deviceList =
     opportunity.earnings_text,
     languageKey,
     "en"
-  ) || opportunity.earnings_text;
+  ) || opportunity.earnings_text || (isProlificOpportunity
+    ? languageKey === "ar" ? "تختلف حسب الدراسة والملف الشخصي للمشارك" : "Varies by study and participant profile"
+    : null);
 
 const localizedVerification = localizeVerification(opportunity.verification_status, languageKey) ?? opportunity.verification_status;
             const startUrl = getOpportunityStartUrl(opportunity) ?? opportunity.direct_url ?? opportunity.source_url;
