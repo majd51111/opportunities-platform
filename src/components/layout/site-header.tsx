@@ -192,7 +192,7 @@ export function SiteHeader() {
         </nav>
 
         <nav className="order-3 flex w-full min-w-0 items-center justify-center gap-3 border-t border-zinc-100 pt-3 md:hidden" aria-label="Primary navigation">
-          {navItems.slice(0, 3).map((item) => (
+          {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
